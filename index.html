@@ -3,132 +3,121 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TABKLUNG Mobile | by: Kang Putra Angklung</title>
+    <title>TABKLUNG MOBILE Pro | ABK31</title>
     <script src="https://unpkg.com/@tonejs/midi"></script>
     <style>
         :root { 
             --bg: #020617; --panel: #1e293b; --accent: #2dd4bf; --gold: #fbbf24; 
-            --danger: #ff4757; --success: #22c55e; --card: #0f172a; --gray: #475569;
-            --orange: #e67e22; --deep-orange: #d35400;
+            --danger: #ef4444; --success: #22c55e; --card: #0f172a; --gray: #475569;
+            --orange: #f97316;
         }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         
         body { 
-            font-family: 'Inter', sans-serif; background: var(--bg); color: #f8fafc; 
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
+            background: var(--bg); color: #f8fafc; 
             margin: 0; display: flex; flex-direction: column; height: 100vh;
-            padding-bottom: 70px; /* Space for Bottom Bar */
+            padding-bottom: 85px; /* Ruang untuk Bottom Bar yang lebih besar */
         }
 
-        /* --- HEADER & TOOLBAR --- */
-        .app-header { display: flex; align-items: center; padding: 10px 15px; background: #1e293b; border-bottom: 2px solid var(--gold); }
-        .app-logo { height: 35px; margin-right: 12px; filter: drop-shadow(0 0 5px rgba(251, 191, 36, 0.3)); }
-        .song-title-input { background: #000; border: 1px solid var(--gray); color: var(--gold); padding: 8px 10px; border-radius: 4px; font-weight: bold; width: 100%; outline: none; margin-top: 4px; font-size: 14px; }
-        .song-title-input:focus { border-color: var(--accent); }
+        /* --- HEADER --- */
+        .app-header { 
+            display: flex; align-items: center; padding: 12px 15px; 
+            background: var(--panel); border-bottom: 3px solid var(--gold);
+        }
+        .app-logo { height: 45px; margin-right: 15px; }
+        .song-title-input { 
+            background: #000; border: 2px solid var(--gray); color: var(--gold); 
+            padding: 10px; border-radius: 8px; font-weight: bold; width: 100%; 
+            font-size: 16px; outline: none;
+        }
 
+        /* --- TOOLBAR UTAMA (Tombol Besar) --- */
         .top-toolbar { 
-            display: flex; overflow-x: auto; flex-wrap: nowrap; padding: 10px 15px; 
-            background: #0f172a; gap: 8px; border-bottom: 1px solid #334155; 
-            align-items: center; scrollbar-width: none; -webkit-overflow-scrolling: touch;
+            display: flex; overflow-x: auto; padding: 12px; 
+            background: #0f172a; gap: 10px; border-bottom: 1px solid #334155; 
+            scrollbar-width: none;
         }
         .top-toolbar::-webkit-scrollbar { display: none; }
         
-        .btn-tool { border: none; color: white; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 11px; text-transform: uppercase; white-space: nowrap; }
-        .btn-tool:active { transform: scale(0.95); filter: brightness(1.2); }
-        
-        .mode-selector { background: #334155; padding: 3px; border-radius: 6px; display: flex; gap: 3px; flex-shrink: 0; }
-        .btn-mode { border: none; background: transparent; color: #94a3b8; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 11px; font-weight: bold; }
-        .btn-mode.active { background: var(--gold); color: black; }
-        .key-select { background: #000; color: var(--gold); border: 1px solid var(--gold); border-radius: 4px; font-size: 12px; padding: 6px; cursor: pointer; flex-shrink: 0; }
-        
-        .tempo-wrapper { display:flex; align-items:center; gap:5px; background: #000; padding: 3px 8px; border-radius: 6px; flex-shrink: 0; border: 1px solid var(--gray); }
-        .tempo-wrapper input { width: 45px; background: transparent; color: var(--gold); border: none; text-align: center; font-size: 12px; font-weight: bold; outline: none; }
-
-        /* --- TIMELINE --- */
-        .timeline-container { padding: 10px 15px; display: flex; align-items: center; gap: 15px; background: #0f172a; border-bottom: 2px solid #1e293b; }
-        .time-display { font-family: 'Courier New', monospace; font-size: 14px; color: var(--gold); min-width: 45px; font-weight: bold;}
-        .slider-wrapper { flex: 1; position: relative; height: 8px; background: var(--gray); border-radius: 4px; }
-        #playback-slider { -webkit-appearance: none; width: 100%; height: 100%; background: transparent; position: absolute; z-index: 5; margin: 0; top:0; }
-        #playback-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; background: #fff; border: 2px solid var(--gold); border-radius: 50%; }
-        .slider-progress { position: absolute; height: 100%; background: var(--gold); border-radius: 4px; pointer-events: none; width: 0%; top:0; }
-
-        /* --- MAIN EDITOR --- */
-        .main-editor { flex: 1; overflow-y: auto; padding: 15px; -webkit-overflow-scrolling: touch; }
-        .section-box { background: #111827; border: 1px solid #374151; border-radius: 12px; padding: 12px; margin-bottom: 20px; }
-        .section-box.collapsed .bar-content { display: none; }
-        .group-header { display: flex; flex-direction: column; gap: 10px; margin-bottom: 10px; padding-bottom: 10px; border-bottom: 1px solid #1f2937; }
-        
-        .bar-card { background: #0f172a; padding: 10px; border-radius: 8px; margin-top: 10px; border: 2px solid #334155; }
-        .active-playing { border-color: var(--gold) !important; box-shadow: 0 0 10px rgba(251,191,36,0.2); }
-        
-        .bar-tools-scroll { display: flex; overflow-x: auto; gap: 5px; margin-bottom: 10px; padding-bottom: 5px; scrollbar-width: none; }
-        .bar-tools-scroll::-webkit-scrollbar { display: none; }
-        .bar-name-input { background: transparent; border: 1px solid #334; color: var(--gold); font-size: 11px; font-weight: bold; width: 60px; padding: 4px; border-radius: 4px; text-align: center; }
-
-        .grid-scroll-area { overflow-x: auto; padding-bottom: 5px; -webkit-overflow-scrolling: touch; }
-        .grid-row { display: flex; gap: 4px; margin-bottom: 4px; align-items: center; width: max-content; }
-        
-        /* TOUCH FRIENDLY CELLS */
-        .grid-cell { 
-            min-width: 45px; height: 45px; border: 1px solid #1e293b; text-align: center; 
-            font-weight: bold; border-radius: 6px; font-size: 14px; background: #000; color: #fff; 
-            font-family: 'Courier New', monospace; display: flex; align-items: center; justify-content: center;
-            cursor: pointer; transition: background 0.1s; user-select: none;
+        .btn-main { 
+            border: none; color: white; padding: 12px 18px; border-radius: 10px; 
+            font-weight: 800; font-size: 14px; white-space: nowrap;
+            display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.3);
         }
-        .grid-cell:active { transform: scale(0.95); }
-        .grid-cell.selected { background-color: rgba(251, 191, 36, 0.4) !important; border: 2px solid var(--gold) !important; }
+        .btn-main:active { transform: translateY(2px); box-shadow: none; }
+
+        /* --- TIMELINE & SLIDER --- */
+        .timeline-container { 
+            padding: 15px; display: flex; align-items: center; gap: 15px; 
+            background: #0f172a; border-bottom: 1px solid #1e293b;
+        }
+        .time-display { font-family: monospace; font-size: 18px; color: var(--gold); font-weight: bold; }
+        #playback-slider { flex: 1; height: 12px; border-radius: 6px; accent-color: var(--gold); }
+
+        /* --- EDITOR AREA --- */
+        .main-editor { flex: 1; overflow-y: auto; padding: 10px; }
+        .section-box { background: #111827; border: 2px solid #374151; border-radius: 15px; padding: 12px; margin-bottom: 25px; }
         
-        /* VISUAL GLOW HIGHLIGHT */
+        .group-header { 
+            display: flex; justify-content: space-between; align-items: center; 
+            margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #334155; 
+        }
+
+        .bar-card { 
+            background: #0f172a; padding: 12px; border-radius: 12px; 
+            margin-top: 15px; border: 2px solid #334155; position: relative;
+        }
+        .active-playing { border-color: var(--gold) !important; box-shadow: 0 0 15px rgba(251,191,36,0.4); }
+
+        /* GRID SCROLL */
+        .grid-scroll-area { overflow-x: auto; padding-bottom: 10px; }
+        .grid-row { display: flex; gap: 6px; margin-bottom: 6px; width: max-content; }
+        .row-label { width: 30px; font-size: 12px; color: #94a3b8; font-weight: bold; display: flex; align-items: center; }
+
+        /* CELL WITH AUTO-SUGGEST (Native Select) */
+        .cell-wrapper {
+            position: relative; min-width: 55px; height: 55px;
+            background: #000; border: 2px solid #1e293b; border-radius: 8px;
+        }
+        .grid-select {
+            position: absolute; inset: 0; width: 100%; height: 100%;
+            opacity: 0; cursor: pointer; z-index: 2;
+        }
+        .cell-display {
+            position: absolute; inset: 0; display: flex; align-items: center; 
+            justify-content: center; font-weight: 800; font-size: 16px; 
+            pointer-events: none; color: #fff; font-family: 'Courier New', monospace;
+        }
+
+        /* VISUAL FEEDBACK */
         .playing-glow {
-            background-color: var(--gold) !important;
-            color: #000 !important;
+            background: var(--gold) !important;
             border-color: #fff !important;
-            box-shadow: 0 0 15px var(--gold);
-            transform: scale(1.05);
-            z-index: 10;
+            box-shadow: 0 0 20px var(--gold);
+            z-index: 5;
         }
+        .playing-glow .cell-display { color: #000; }
 
-        .beat-1 { background: #0f172a; } 
-        .beat-2 { background: #1e293b; } 
-        .row-label { width: 25px; font-size: 10px; color: #64748b; text-align: center; font-weight: bold; flex-shrink: 0; }
-
-        /* --- BOTTOM ACTION BAR --- */
+        /* --- BOTTOM NAVIGATION --- */
         .bottom-bar {
             position: fixed; bottom: 0; left: 0; width: 100%; background: #1e293b; 
-            border-top: 2px solid var(--gold); display: flex; gap: 10px;
-            padding: 10px 15px; z-index: 1000; align-items: center; justify-content: space-between;
-            box-shadow: 0 -4px 10px rgba(0,0,0,0.5);
+            border-top: 3px solid var(--gold); display: flex; gap: 12px;
+            padding: 12px 20px; z-index: 1000; height: 85px;
         }
-        .btn-play { flex: 2; padding: 15px; background: var(--success); border: none; color: white; font-weight: 900; font-size: 16px; border-radius: 8px; cursor: pointer; }
-        .btn-stop { flex: 1; padding: 15px; background: var(--danger); border: none; color: white; font-weight: 900; font-size: 16px; border-radius: 8px; cursor: pointer; }
+        .btn-play-large { 
+            flex: 2; background: var(--success); border: none; color: white; 
+            border-radius: 12px; font-size: 20px; font-weight: 900; 
+            box-shadow: 0 4px 0 #15803d;
+        }
+        .btn-stop-large { 
+            flex: 1; background: var(--danger); border: none; color: white; 
+            border-radius: 12px; font-size: 20px; font-weight: 900;
+            box-shadow: 0 4px 0 #b91c1c;
+        }
+        .btn-play-large:active, .btn-stop-large:active { transform: translateY(3px); box-shadow: none; }
 
-        /* --- CUSTOM PICKER MODAL --- */
-        #picker-modal {
-            display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); 
-            z-index: 2000; justify-content: center; align-items: center; flex-direction: column;
-            backdrop-filter: blur(4px); padding: 15px;
-        }
-        .picker-container {
-            background: #0f172a; border: 2px solid var(--gold); border-radius: 16px; 
-            width: 100%; max-width: 400px; padding: 20px; display: flex; flex-direction: column; 
-            max-height: 85vh; box-shadow: 0 10px 30px rgba(0,0,0,0.8);
-        }
-        .picker-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #334155; padding-bottom: 10px; margin-bottom: 15px; }
-        .picker-title { color: var(--gold); font-weight: bold; font-size: 16px; margin: 0; }
-        .btn-close-picker { background: transparent; border: none; color: white; font-size: 24px; font-weight: bold; cursor: pointer; }
-        
-        .picker-grid { 
-            display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; 
-            overflow-y: auto; padding-right: 5px; margin-bottom: 15px;
-            -webkit-overflow-scrolling: touch;
-        }
-        .btn-pick { 
-            padding: 15px 5px; background: #1e293b; border: 1px solid #334155; 
-            color: white; border-radius: 8px; font-weight: bold; font-size: 14px; 
-            text-align: center; cursor: pointer; transition: 0.1s;
-        }
-        .btn-pick:active { background: var(--gold); color: black; transform: scale(0.95); }
-        .btn-clear-cell { background: var(--danger); color: white; border: none; padding: 15px; font-weight: bold; font-size: 16px; border-radius: 8px; cursor: pointer; width: 100%; }
-
+        .beat-divider { border-right: 2px dashed #475569 !important; padding-right: 4px; }
     </style>
 </head>
 <body>
@@ -136,41 +125,24 @@
 <div class="app-header">
     <img src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEjvm4FDE7tagy8ZtWyfy_pzRnB9D8orAO_5EwH5sBbJOC3JIOlGweg5XCwhWQZbY8xVIFTbMpojvtX3X-BZv_xfrvjzIkXn3-RYIwFJMhOnM-y0YaO8JZocqYoFmq4NSdHwsPzAp8kIjzfFtCL8KrgDiueLZRhApll7tvcTmeRS6lcBtjEK4ZthgkS7rmI/s320/kang_putra__1_-removebg-preview.png" class="app-logo">
     <div style="flex:1">
-        <h3 style="margin:0; color:var(--gold); font-size:12px;">TABKLUNG Mobile</h3>
-        <input type="text" id="song-title" class="song-title-input" placeholder="Judul Lagu..." oninput="app.save()">
+        <input type="text" id="song-title" class="song-title-input" placeholder=" JUDUL LAGU..." oninput="app.save()">
     </div>
 </div>
 
 <div class="top-toolbar">
-    <button class="btn-tool" style="background:#3b82f6;" onclick="app.exportData()">💾 Save</button>
-    <button class="btn-tool" style="background:#6366f1;" onclick="document.getElementById('importFile').click()">📂 Load</button>
-    <button class="btn-tool" style="background:#8b5cf6;" onclick="document.getElementById('midiFile').click()">🎹 MIDI</button>
+    <button class="btn-main" style="background:#3b82f6;" onclick="app.exportData()">💾 SIMPAN</button>
+    <button class="btn-main" style="background:#6366f1;" onclick="document.getElementById('importFile').click()">📂 BUKA</button>
+    <button class="btn-main" style="background:#8b5cf6;" onclick="document.getElementById('midiFile').click()">🎹 MIDI</button>
+    <button class="btn-main" style="background:var(--orange);" onclick="app.quantizeAll()">🎯 AUTO QNTZ</button>
     
-    <div style="border-left: 1px solid #334; padding-left: 5px; display: flex; align-items: center; gap: 4px;">
-        <select id="mass-layer-target" style="font-size: 11px; padding: 6px; background: #000; color: var(--accent); border: 1px solid #334155; border-radius: 4px;">
-            <option value="all">Semua Layer</option>
-            <option value="exclude-l1">Kecuali L1</option>
-            <option value="l1-only">Hanya L1</option>
-        </select>
-        <button class="btn-tool" style="background:var(--deep-orange);" onclick="app.quantizeAll(document.getElementById('mass-layer-target').value)">🎯 Mass Quantize</button>
+    <div style="background: #000; padding: 5px 12px; border-radius: 10px; display: flex; align-items: center; gap: 8px; border: 1px solid var(--gray);">
+        <span style="color:var(--gold); font-weight:bold; font-size:12px;">BPM</span>
+        <input type="number" id="tempo" value="0.40" step="0.01" style="width:60px; background:transparent; color:white; border:none; font-size:16px; font-weight:bold; text-align:center;" oninput="app.save()">
     </div>
 
-    <div class="mode-selector">
-        <button id="mode-piano" class="btn-mode active" onclick="app.setDisplayMode('piano')">Piano</button>
-        <button id="mode-solfege" class="btn-mode" onclick="app.setDisplayMode('solfege')">123</button>
-    </div>
-
-    <select id="key-base" class="key-select" onchange="app.setKeyBase(this.value)">
-        <option value="0">Do=C</option><option value="1">Do=C#</option><option value="2">Do=D</option>
-        <option value="3">Do=D#</option><option value="4">Do=E</option><option value="5">Do=F</option>
-        <option value="6">Do=F#</option><option value="7">Do=G</option><option value="8">Do=G#</option>
-        <option value="9">Do=A</option><option value="10">Do=A#</option><option value="11">Do=B</option>
+    <select id="key-base" class="song-title-input" style="width:auto; font-size:14px;" onchange="app.setKeyBase(this.value)">
+        <option value="0">Do=C</option><option value="2">Do=D</option><option value="4">Do=E</option><option value="5">Do=F</option><option value="7">Do=G</option><option value="9">Do=A</option><option value="11">Do=B</option>
     </select>
-
-    <div class="tempo-wrapper">
-        <span style="font-size:10px; color:#94a3b8">BPM</span>
-        <input type="number" id="tempo" value="0.40" step="0.01" oninput="app.save()">
-    </div>
 
     <input type="file" id="importFile" style="display:none" onchange="app.importData(event)">
     <input type="file" id="midiFile" style="display:none" onchange="app.importMIDI(event)">
@@ -178,70 +150,49 @@
 
 <div class="timeline-container">
     <span class="time-display" id="time-current">00:00</span>
-    <div class="slider-wrapper">
-        <div class="slider-progress" id="slider-fill"></div>
-        <input type="range" id="playback-slider" value="0" min="0" step="1" oninput="app.seek(this.value)">
-    </div>
+    <input type="range" id="playback-slider" value="0" min="0" step="1" oninput="app.seek(this.value)">
 </div>
 
-<div class="main-editor">
-    <div id="sections-container"></div>
-    <button onclick="app.addSection()" style="width:100%; padding:15px; background:var(--gold); border:none; font-weight:bold; border-radius:8px; cursor:pointer; color:black; margin-bottom: 20px;">+ TAMBAH GRUP MUSIK BARU</button>
+<div class="main-editor" id="sections-container"></div>
+
+<div style="padding: 0 15px 30px 15px;">
+    <button onclick="app.addSection()" style="width:100%; padding:20px; background:var(--gold); border:none; font-weight:900; font-size:16px; border-radius:15px; color:black;">+ TAMBAH GRUP MUSIK BARU</button>
 </div>
 
 <div class="bottom-bar">
-    <button onclick="app.stop()" class="btn-stop">■ STOP</button>
-    <button id="play-btn" onclick="app.play()" class="btn-play">▶ PLAY</button>
-</div>
-
-<div id="picker-modal">
-    <div class="picker-container">
-        <div class="picker-header">
-            <h4 class="picker-title">Pilih Nada</h4>
-            <button class="btn-close-picker" onclick="app.closePicker()">×</button>
-        </div>
-        <div class="picker-grid" id="picker-grid-content">
-            </div>
-        <button class="btn-clear-cell" onclick="app.selectPickerValue('')">🗑️ KOSONGKAN SEL</button>
-    </div>
+    <button onclick="app.stop()" class="btn-stop-large">■ STOP</button>
+    <button id="play-btn" onclick="app.play()" class="btn-play-large">▶ MULAI</button>
 </div>
 
 <script>
 const app = {
     sections: [], timeline: [], isPlaying: false, audio: null,
     startTime: 0, pauseOffset: 0, currentBarIdx: -1, lastStep: -1,
-    selection: { start: null, end: null, active: false }, clipboard: null,
-    displayMode: 'piano', keyBase: 0, playLimitStep: -1,
-    pickerTarget: null,
+    displayMode: 'solfege', keyBase: 0,
     
-    // MIDI List Standard C4=60
-    noteList: ["C4","C#4","D4","D#4","E4","F4","F#4","G4","G#4","A4","A#4","B4","C5","C#5","D5","D#5","E5","F5","F#5","G5","G#5","A5","A#5","B5","C6","C#6","D6","D#6","E6","F6","F#6","G6","G#6","A6","A#6","B6","C7","C#7","D7","D#7","E7"],
-    solfegeMap: { 0: "1", 1: "1\u0338", 2: "2", 3: "2\u0338", 4: "3", 5: "4", 6: "4\u0338", 7: "5", 8: "5\u0338", 9: "6", 10: "6\u0338", 11: "7" },
-    noteColors: { 'C': '#FF0000', 'C#': '#FF8C00', 'D': '#FFD700', 'D#': '#ADFF2F', 'E': '#00FF00', 'F': '#00FA9A', 'F#': '#00FFFF', 'G': '#1E90FF', 'G#': '#0000FF', 'A': '#8A2BE2', 'A#': '#9400D3', 'B': '#FF1493' },
+    // Range Nada Angklung Standard (MIDI 55-85)
+    noteList: ["", "55","56","57","58","59","60","61","62","63","64","65","66","67","68","69","70","71","72","73","74","75","76","77","78","79","80","81","82","83","84","85"],
+    solfegeMap: { 0: "1", 1: "1#", 2: "2", 3: "2#", 4: "3", 5: "4", 6: "4#", 7: "5", 8: "5#", 9: "6", 10: "6#", 11: "7" },
+    chordList: ["", "C", "Cm", "D", "Dm", "E", "Em", "F", "Fm", "G", "Gm", "A", "Am", "B", "Bm"],
 
     init() {
-        const saved = JSON.parse(localStorage.getItem('tabklung_v11.7_fix'));
+        const saved = JSON.parse(localStorage.getItem('tabklung_mobile_abk31'));
         if(saved) {
             this.sections = saved.sections;
             this.keyBase = saved.keyBase || 0;
-            this.displayMode = saved.displayMode || 'piano';
             document.getElementById('key-base').value = this.keyBase;
             document.getElementById('song-title').value = saved.songTitle || "";
             document.getElementById('tempo').value = saved.tempo || "0.40";
-            this.updateModeUI();
         } else { this.addSection(); }
-        this.rebuildTimeline(); this.renderAll(); this.initEvents();
+        this.rebuildTimeline(); this.renderAll();
     },
 
     numToSmartDisplay(n) {
-        if(!n || isNaN(n)) return n;
-        if(this.displayMode === 'piano') return this.numToSolfege(n);
-        
+        if(!n || isNaN(n)) return "";
         let val = parseInt(n);
         let relativeNote = val - (60 + this.keyBase);
         let octave = Math.floor(relativeNote / 12);
         let noteInOctave = ((relativeNote % 12) + 12) % 12;
-        
         let baseNum = this.solfegeMap[noteInOctave];
         if (octave > 0) return baseNum + ".".repeat(octave);
         if (octave < 0) return baseNum + "\u0323".repeat(Math.abs(octave));
@@ -251,13 +202,58 @@ const app = {
     playTone(f) { 
         if(!this.audio) this.audio = new AudioContext();
         const o = this.audio.createOscillator(), g = this.audio.createGain(); 
-        o.type='triangle'; 
-        o.frequency.value=f; 
+        o.type='triangle'; o.frequency.value=f; 
         g.gain.setValueAtTime(0, this.audio.currentTime); 
         g.gain.linearRampToValueAtTime(0.2, this.audio.currentTime+0.01); 
         g.gain.exponentialRampToValueAtTime(0.0001, this.audio.currentTime+0.6); 
         o.connect(g); g.connect(this.audio.destination); 
         o.start(); o.stop(this.audio.currentTime+0.6); 
+    },
+
+    renderAll() {
+        const container = document.getElementById('sections-container');
+        container.innerHTML = this.sections.map(s => `
+            <div class="section-box">
+                <div class="group-header">
+                    <input value="${s.name}" oninput="app.updateSecName(${s.id}, this.value)" style="background:transparent; border:none; color:var(--gold); font-weight:900; font-size:18px; width:60%;">
+                    <button class="btn-main" style="background:var(--danger); padding:8px 12px;" onclick="app.deleteSec(${s.id})">HAPUS</button>
+                </div>
+                <div>
+                    ${s.bars.map((b, bIdx) => `
+                        <div class="bar-card" id="bar-card-${b.id}">
+                            <div style="display:flex; gap:8px; margin-bottom:12px; overflow-x:auto; padding-bottom:5px;">
+                                <input class="song-title-input" style="width:80px; font-size:12px; padding:5px;" value="${b.name || 'BAR '+(bIdx+1)}" oninput="app.updateBarName(${b.id}, this.value)">
+                                <button class="btn-main" style="background:#334; padding:5px 15px;" onclick="app.shift(${b.id}, 'L')">◀</button>
+                                <button class="btn-main" style="background:#334; padding:5px 15px;" onclick="app.shift(${b.id}, 'R')">▶</button>
+                                <button class="btn-main" style="background:var(--success); color:black; padding:5px 15px;" onclick="app.playSingleBar(${b.id})">PLAY BAR</button>
+                                <button class="btn-main" style="background:var(--danger); padding:5px 10px;" onclick="app.deleteBar(${s.id}, ${b.id})">✖</button>
+                            </div>
+                            
+                            <div class="grid-scroll-area">
+                                ${b.grid.map((row, rIdx) => `
+                                    <div class="grid-row">
+                                        <span class="row-label">${rIdx==5?'CH':(rIdx+1)}</span>
+                                        ${row.map((cell, cIdx) => `
+                                            <div class="cell-wrapper ${cIdx % 4 === 3 ? 'beat-divider' : ''}" data-loc="${s.id}-${b.id}-${rIdx}-${cIdx}">
+                                                <div class="cell-display">${rIdx==5 ? cell : this.numToSmartDisplay(cell)}</div>
+                                                <select class="grid-select" onchange="app.updateGrid(${b.id}, ${rIdx}, ${cIdx}, this.value)">
+                                                    ${ (rIdx === 5 ? this.chordList : this.noteList).map(opt => `
+                                                        <option value="${opt}" ${cell == opt ? 'selected' : ''}>
+                                                            ${rIdx==5 ? (opt||'Kosong') : (opt ? this.numToSmartDisplay(opt) : 'Kosong')}
+                                                        </option>
+                                                    `).join('') }
+                                                </select>
+                                            </div>
+                                        `).join('')}
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    `).join('')}
+                    <button onclick="app.addBar(${s.id})" style="width:100%; margin-top:15px; padding:12px; background:rgba(45,212,191,0.1); border:2px dashed var(--accent); color:var(--accent); font-weight:bold; border-radius:10px;">+ TAMBAH BAR</button>
+                </div>
+            </div>
+        `).join('');
     },
 
     syncLoop() {
@@ -273,7 +269,6 @@ const app = {
         if(barIdx >= this.timeline.length) { this.stop(); return; }
         
         document.getElementById('playback-slider').value = step;
-        document.getElementById('slider-fill').style.width = (step / (document.getElementById('playback-slider').max || 1) * 100) + '%';
         
         if(barIdx !== this.currentBarIdx) { 
             this.currentBarIdx = barIdx; 
@@ -287,15 +282,12 @@ const app = {
             const bar = this.getBarById(this.timeline[barIdx].id);
             const sId = this.timeline[barIdx].sId;
 
-            // Remove previous glow
             document.querySelectorAll('.playing-glow').forEach(el => el.classList.remove('playing-glow'));
 
-            for(let r=0; r<6; r++) { // Termasuk baris chord untuk visual
+            for(let r=0; r<6; r++) {
                 let cellLoc = `${sId}-${bar.id}-${r}-${subStep}`;
-                let cellEl = document.querySelector(`.grid-cell[data-loc="${cellLoc}"]`);
-                if(cellEl) {
-                    cellEl.classList.add('playing-glow');
-                }
+                let cellEl = document.querySelector(`[data-loc="${cellLoc}"]`);
+                if(cellEl) cellEl.classList.add('playing-glow');
 
                 if(r < 5 && bar.grid[r][subStep]) {
                     const midiNote = parseInt(bar.grid[r][subStep]);
@@ -307,361 +299,39 @@ const app = {
         requestAnimationFrame(() => this.syncLoop());
     },
 
-    async importMIDI(e) {
-        const file = e.target.files[0]; if(!file) return;
-        const reader = new FileReader();
-        reader.onload = async (x) => {
-            const midi = new Midi(x.target.result);
-            const sps = (60/(midi.header.tempos[0]?.bpm || 120))/4;
-            document.getElementById('tempo').value = sps.toFixed(3);
-            let notes = [];
-            midi.tracks.forEach(t => t.notes.forEach(n => notes.push({midi: n.midi, step: Math.round(n.time / sps)})));
-            
-            this.sections = [{ id: Date.now(), name: "MIDI IMPORT", bars: [], collapsed: false }];
-            
-            notes.sort((a,b) => a.step - b.step).forEach(n => {
-                let m = n.midi; 
-                while (m < 55) m += 12; 
-                while (m > 85) m -= 12; 
-                
-                if (m >= 55 && m <= 85) {
-                    let bIdx = Math.floor(n.step / 16), sStep = n.step % 16;
-                    while(this.sections[0].bars.length <= bIdx) {
-                        this.sections[0].bars.push({ 
-                            id: Date.now()+this.sections[0].bars.length, 
-                            name: "", 
-                            grid: Array(6).fill().map(() => Array(16).fill('')) 
-                        });
-                    }
-                    let bar = this.sections[0].bars[bIdx];
-                    for(let r=0; r<5; r++) if(bar.grid[r][sStep] === "") { bar.grid[r][sStep] = m.toString(); break; }
-                }
-            });
-            
-            this.sections[0].bars.forEach(b => this.sortNotesInBar(b));
-            this.rebuildTimeline(); this.renderAll(); this.save();
-            alert("MIDI Berhasil Diimpor dengan Octave Folding (Range 55-85)!");
-        };
-        reader.readAsArrayBuffer(file);
-    },
-
-    quantizeToAngklung(bId, mode = 'all') {
-        const bar = this.getBarById(bId);
-        if (!bar) return;
-        const anchorPoints = [0, 4, 8, 12];
-        let rowsToProcess = [];
-        switch(mode) {
-            case 'exclude-l1': rowsToProcess = [1, 2, 3, 4]; break;
-            case 'l1-only': rowsToProcess = [0]; break;
-            default: rowsToProcess = [0, 1, 2, 3, 4];
-        }
-        anchorPoints.forEach(point => {
-            let uniqueNotes = new Set();
-            for (let c = point; c < point + 4; c++) {
-                rowsToProcess.forEach(r => {
-                    if (bar.grid[r][c]) { uniqueNotes.add(bar.grid[r][c]); bar.grid[r][c] = ""; }
-                });
-            }
-            let sortedNotes = Array.from(uniqueNotes).sort((a, b) => b - a);
-            sortedNotes.forEach((note, idx) => {
-                if (idx < rowsToProcess.length) { bar.grid[rowsToProcess[idx]][point] = note; }
-            });
-        });
-        this.renderAll(); this.save();
-    },
-
-    quantizeAll(mode = 'all') {
-        let label = mode === 'exclude-l1' ? "KECUALI Layer 1" : (mode === 'l1-only' ? "HANYA Layer 1" : "SEMUA Layer");
-        if (!confirm(`Terapkan gaya Angklung ke ${label} pada seluruh bar?`)) return;
-        this.sections.forEach(section => section.bars.forEach(bar => this.quantizeToAngklung(bar.id, mode)));
-        this.renderAll(); this.save(); alert("Proses Quantize Berhasil!");
-    },
-
-    doubleOctave(bId) {
-        const bar = this.getBarById(bId);
-        if (!bar) return;
-        for (let c = 0; c < 16; c++) {
-            let colNotes = [];
-            for (let r = 0; r < 5; r++) if (bar.grid[r][c]) colNotes.push(parseInt(bar.grid[r][c]));
-            colNotes.forEach(n => {
-                let low = n - 12;
-                if (low >= 36 && !colNotes.includes(low)) {
-                    for (let r = 0; r < 5; r++) if (bar.grid[r][c] === "") { bar.grid[r][c] = low.toString(); colNotes.push(low); break; }
-                }
-            });
-        }
-        this.sortNotesInBar(bar); this.renderAll(); this.save();
-    },
-
-    autoChord(bId) {
-        const bar = this.getBarById(bId);
-        if (!bar) return;
-        const notesMap = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
-        let lastDetected = "";
-        for (let col = 0; col < 16; col++) {
-            let notesInCol = [];
-            for (let r = 0; r < 5; r++) {
-                if (bar.grid[r][col]) {
-                    let noteNum = parseInt(bar.grid[r][col]);
-                    let noteName = notesMap[(noteNum) % 12];
-                    if (!notesInCol.includes(noteName)) notesInCol.push(noteName);
-                }
-            }
-            if (notesInCol.length > 0) {
-                let detected = this.guessChord(notesInCol);
-                if (detected !== lastDetected) { bar.grid[5][col] = detected; lastDetected = detected; } 
-                else { bar.grid[5][col] = ""; }
-            } else { bar.grid[5][col] = ""; lastDetected = ""; }
-        }
-        this.renderAll(); this.save();
-    },
-
-    guessChord(notes) {
-        const chords = { "C":["C","E","G"], "Cm":["C","D#","G"], "D":["D","F#","A"], "Dm":["D","F","A"], "E":["E","G#","B"], "Em":["E","G","B"], "F":["F","A","C"], "Fm":["F","G#","C"], "G":["G","B","D"], "Gm":["G","A#","D"], "A":["A","C#","E"], "Am":["A","C","E"], "B":["B","D#","F#"], "Bm":["B","D","F#"] };
-        for (let name in chords) { if (chords[name].every(n => notes.includes(n))) return name; }
-        return notes[0];
-    },
-
-    renderAll() {
-        const container = document.getElementById('sections-container');
-        container.innerHTML = this.sections.map(s => `
-            <div class="section-box ${s.collapsed ? 'collapsed' : ''}">
-                <div class="group-header">
-                    <div style="display:flex; justify-content:space-between; align-items:center; width:100%;">
-                        <input value="${s.name}" oninput="app.updateSecName(${s.id}, this.value)" style="background:transparent; border:none; color:white; font-weight:bold; font-size:16px; outline:none; width: 60%;">
-                        <div>
-                            ${s.collapsed ? `<button class="btn-tool" style="background:var(--success); color:black;" onclick="app.toggleFold(${s.id}, false)">📂 BUKA</button>` : `<button class="btn-tool" style="background:var(--gray);" onclick="app.toggleFold(${s.id}, true)">📁 LIPAT</button>`}
-                        </div>
-                    </div>
-                    <div style="display:flex; gap:5px; flex-wrap:wrap;">
-                        <button class="btn-tool" style="background:var(--accent); color:black;" onclick="app.addBar(${s.id})">+ TAMBAH BAR</button>
-                        <button class="btn-tool" style="background:var(--danger);" onclick="app.deleteSec(${s.id})">HAPUS GRUP</button>
-                    </div>
-                </div>
-                <div class="bar-content">
-                    ${s.bars.map((b, bIdx) => `
-                        <div class="bar-card" id="bar-card-${b.id}">
-                            <div class="bar-tools-scroll">
-                                <input class="bar-name-input" value="${b.name || 'BAR ' + (bIdx + 1)}" oninput="app.updateBarName(${b.id}, this.value)">
-                                <button class="btn-tool" style="background:#334;" onclick="app.shift(${b.id}, 'all', 'L')">◀</button>
-                                <button class="btn-tool" style="background:#334;" onclick="app.shift(${b.id}, 'all', 'R')">▶</button>
-                                <button class="btn-tool" style="background:var(--deep-orange);" onclick="app.manualSort(${b.id})">🗂️ SORT</button>
-                                <button class="btn-tool" style="background:var(--accent); color:black;" onclick="app.doubleOctave(${b.id})">💎 DBL</button>
-                                <button class="btn-tool" style="background:#8b5cf6;" onclick="app.autoChord(${b.id})">🪄 CHORD</button>
-                                <div style="display:flex; align-items:center; gap:2px; background:#1e293b; border-radius:4px;">
-                                    <select id="sel-layer-${b.id}" style="font-size:10px; background:transparent; color:white; border:none;">
-                                        <option value="all">All</option><option value="exclude-l1">Ex.L1</option>
-                                    </select>
-                                    <button class="btn-tool" style="background:var(--orange);" onclick="app.quantizeToAngklung(${b.id}, document.getElementById('sel-layer-${b.id}').value)">🪘 QNTZ</button>
-                                </div>
-                                <button class="btn-tool" style="background:var(--success); color:black;" onclick="app.playSingleBar(${b.id})">🎯 PREV</button>
-                                <button class="btn-tool" style="background:var(--danger);" onclick="app.deleteBar(${s.id}, ${b.id})">✖</button>
-                            </div>
-                            
-                            <div class="grid-scroll-area">
-                                ${b.grid.map((row, rIdx) => `
-                                    <div class="grid-row">
-                                        <span class="row-label">${rIdx==5?'CH':(rIdx+1)}</span>
-                                        ${row.map((cell, cIdx) => {
-                                            const beatClass = (Math.floor(cIdx / 4) % 2 === 0) ? 'beat-1' : 'beat-2';
-                                            return `<div class="grid-cell ${beatClass}" data-loc="${s.id}-${b.id}-${rIdx}-${cIdx}" 
-                                                style="${this.getCellStyle(cell, rIdx==5)}" 
-                                                onclick="app.openPicker(${s.id}, ${b.id}, ${rIdx}, ${cIdx})"
-                                                onmousedown="app.startSelect(${s.id}, ${b.id}, ${rIdx}, ${cIdx})" 
-                                                onmouseenter="app.enterSelect(${s.id}, ${b.id}, ${rIdx}, ${cIdx})">
-                                                ${rIdx==5 ? cell : this.numToSmartDisplay(cell)}
-                                            </div>`;
-                                        }).join('')}
-                                    </div>
-                                `).join('')}
-                            </div>
-                        </div>
-                    `).join('')}
-                </div>
-            </div>
-        `).join('');
-    },
-
-    numToSolfege(n) { 
-        if(!n || isNaN(n)) return n; 
-        const notes = ["C","C#","D","D#","E","F","F#","G","G#","A","A#","B"]; 
-        let v=parseInt(n), oct=Math.floor(v/12)-1, idx=v%12; 
-        return notes[idx]+oct; 
-    },
-
-    solfegeToNum(s) { 
-        if(!s) return "";
-        const chromaticMap = { "1/":1, "1\\":1, "2/":3, "2\\":3, "4/":6, "4\\":6, "5/":8, "5\\":8, "6/":10, "6\\":10 };
-        const baseMap = { "1":0, "2":2, "3":4, "4":5, "5":7, "6":9, "7":11 };
-        
-        if (s.match(/[A-G]/i)) {
-            const m = {"C":0,"C#":1,"D":2,"D#":3,"E":4,"F":5,"F#":6,"G":7,"G#":8,"A":9,"A#":10,"B":11}; 
-            let match=s.match(/([A-G]#?)(\d)/i); 
-            if(match) return (m[match[1].toUpperCase()]+(parseInt(match[2])+1)*12).toString(); 
-            return s;
-        }
-
-        let clean = s.replace(/[\.\u0323]/g, '');
-        let octave = (s.split('.').length - 1) - (s.split('\u0323').length - 1);
-        
-        let semi = baseMap[clean[0]] || 0;
-        if (chromaticMap[clean]) semi = chromaticMap[clean];
-
-        let midi = 60 + this.keyBase + semi + (octave * 12);
-        return midi.toString();
-    },
-
-    getCellStyle(val, isChord) { 
-        if(!val) return ""; 
-        if(isChord) return "background:#fbbf2433 !important; color:var(--gold); border-color:var(--gold);"; 
-        const n = this.numToSolfege(val).replace(/[0-9-]/g,''); 
-        const c = this.noteColors[n] || '#fff'; 
-        return `background:${c}44 !important; color:${c}; border-color:${c}aa;`; 
-    },
-
-    // --- Custom Picker Logic ---
-    openPicker(sId, bId, r, c) {
-        this.pickerTarget = { sId, bId, r, c };
-        const modal = document.getElementById('picker-modal');
-        const gridContent = document.getElementById('picker-grid-content');
-        gridContent.innerHTML = '';
-
-        if (r === 5) {
-            // Chord Mode
-            const chords = ["C", "Cm", "D", "Dm", "E", "Em", "F", "Fm", "G", "Gm", "A", "Am", "B", "Bm"];
-            chords.forEach(ch => {
-                gridContent.innerHTML += `<button class="btn-pick" onclick="app.selectPickerValue('${ch}')">${ch}</button>`;
-            });
-        } else {
-            // Notes Mode (Convert to MIDI value behind the scenes)
-            this.noteList.forEach(n => {
-                let midi = this.solfegeToNum(n);
-                let label = this.numToSmartDisplay(midi);
-                gridContent.innerHTML += `<button class="btn-pick" onclick="app.selectPickerValue('${midi}')">${label}</button>`;
-            });
-        }
-        modal.style.display = 'flex';
-    },
-
-    closePicker() {
-        document.getElementById('picker-modal').style.display = 'none';
-        this.pickerTarget = null;
-    },
-
-    selectPickerValue(val) {
-        if(this.pickerTarget) {
-            this.updateGrid(this.pickerTarget.bId, this.pickerTarget.r, this.pickerTarget.c, val);
-        }
-        this.closePicker();
-    },
-
-    initEvents() {
-        window.onkeydown = (e) => {
-            if (e.ctrlKey && e.key === 'c') { e.preventDefault(); this.copyData(); }
-            if (e.ctrlKey && e.key === 'v') { e.preventDefault(); this.pasteData(); }
-            if (e.key === 'Delete') { e.preventDefault(); this.deleteSelected(); }
-        };
-        window.onmouseup = () => { this.selection.active = false; };
-    },
-
-    setDisplayMode(m) { this.displayMode = m; this.updateModeUI(); this.renderAll(); this.save(); },
-    updateModeUI() { document.getElementById('mode-piano').classList.toggle('active', this.displayMode === 'piano'); document.getElementById('mode-solfege').classList.toggle('active', this.displayMode === 'solfege'); },
-    setKeyBase(v) { this.keyBase = parseInt(v); this.renderAll(); this.save(); },
-    addSection() { const id = Date.now(); this.sections.push({ id, name: "Grup "+(this.sections.length+1), bars: [{ id: id+1, grid: Array(6).fill().map(() => Array(16).fill('')) }], collapsed: false }); this.rebuildTimeline(); this.renderAll(); },
-    addBar(sId) { this.sections.find(s => s.id === sId).bars.push({ id: Date.now(), name: "", grid: Array(6).fill().map(() => Array(16).fill('')) }); this.rebuildTimeline(); this.renderAll(); },
-    deleteBar(sId, bId) { const s = this.sections.find(x => x.id === sId); s.bars = s.bars.filter(b => b.id !== bId); this.rebuildTimeline(); this.renderAll(); },
-    deleteSec(id) { if(confirm("Hapus grup?")) { this.sections = this.sections.filter(s => s.id !== id); this.rebuildTimeline(); this.renderAll(); } },
+    // --- LOGIC FUNCTIONS ---
+    updateGrid(bId, r, c, v) { this.getBarById(bId).grid[r][c] = v; this.renderAll(); this.save(); },
     updateSecName(id, v) { this.sections.find(s => s.id === id).name = v; this.save(); },
     updateBarName(id, v) { this.getBarById(id).name = v; this.save(); },
-    
-    updateGrid(bId, r, c, v) { 
-        const b = this.getBarById(bId); 
-        // Jika input manual selain picker (misal paste), konversi jika belum numeric
-        if(r<5 && v !== "" && isNaN(v)) v = this.solfegeToNum(v); 
-        b.grid[r][c] = v; 
-        this.renderAll(); this.save(); 
-    },
-
-    manualSort(bId) {
-        const b = this.getBarById(bId);
-        if(b) { this.sortNotesInBar(b); this.renderAll(); this.save(); }
-    },
-
-    sortNotesInBar(b) { 
-        for(let c=0; c<16; c++) { 
-            let notes = []; 
-            for(let r=0; r<5; r++) if(b.grid[r][c]) notes.push(parseInt(b.grid[r][c])); 
-            let sorted = [...new Set(notes)].sort((a,b) => b-a); 
-            for(let r=0; r<5; r++) b.grid[r][c] = sorted[r] ? sorted[r].toString() : ""; 
-        } 
-    },
-
+    addSection() { const id = Date.now(); this.sections.push({ id, name: "GRUP BARU", bars: [{ id: id+1, grid: Array(6).fill().map(() => Array(16).fill('')) }] }); this.rebuildTimeline(); this.renderAll(); },
+    addBar(sId) { this.sections.find(s => s.id === sId).bars.push({ id: Date.now(), grid: Array(6).fill().map(() => Array(16).fill('')) }); this.rebuildTimeline(); this.renderAll(); },
+    deleteBar(sId, bId) { this.sections.find(s => s.id === sId).bars = this.sections.find(s => s.id === sId).bars.filter(b => b.id !== bId); this.rebuildTimeline(); this.renderAll(); },
+    deleteSec(id) { if(confirm("Hapus grup ini?")) { this.sections = this.sections.filter(s => s.id !== id); this.rebuildTimeline(); this.renderAll(); } },
     getBarById(id) { for(let s of this.sections) { let b = s.bars.find(x => x.id === id); if(b) return b; } },
-    shift(bId, rIdx, dir) { const b = this.getBarById(bId); const move = (a) => dir === 'L' ? a.push(a.shift()) : a.unshift(a.pop()); if(rIdx === 'all') b.grid.forEach(row => move(row)); else move(b.grid[rIdx]); this.renderAll(); this.save(); },
-    
+    shift(bId, dir) { const b = this.getBarById(bId); b.grid.forEach(row => dir === 'L' ? row.push(row.shift()) : row.unshift(row.pop())); this.renderAll(); this.save(); },
+    setKeyBase(v) { this.keyBase = parseInt(v); this.renderAll(); this.save(); },
     rebuildTimeline() { 
-        this.timeline = []; 
-        this.sections.forEach(s => s.bars.forEach(b => this.timeline.push({sId: s.id, id: b.id}))); 
+        this.timeline = []; this.sections.forEach(s => s.bars.forEach(b => this.timeline.push({sId: s.id, id: b.id}))); 
         document.getElementById('playback-slider').max = Math.max(0, this.timeline.length * 16 - 1); 
     },
-    
+    seek(step) { this.pauseOffset = step * parseFloat(document.getElementById('tempo').value); if(this.isPlaying) this.startTime = this.audio.currentTime - this.pauseOffset; },
     play() { 
-        if(this.isPlaying) { 
-            this.isPlaying = false; document.getElementById('play-btn').innerText = '▶ PLAY'; 
-            if(this.audio) this.pauseOffset = this.audio.currentTime - this.startTime; 
-        } else { 
-            if(!this.audio) this.audio = new AudioContext(); 
-            this.isPlaying = true; document.getElementById('play-btn').innerText = '⏸ PAUSE'; 
-            this.startTime = this.audio.currentTime - this.pauseOffset; 
-            this.syncLoop(); 
-        } 
+        if(this.isPlaying) { this.isPlaying = false; document.getElementById('play-btn').innerText = '▶ MULAI'; this.pauseOffset = this.audio.currentTime - this.startTime; } 
+        else { if(!this.audio) this.audio = new AudioContext(); this.isPlaying = true; document.getElementById('play-btn').innerText = '⏸ PAUSE'; this.startTime = this.audio.currentTime - this.pauseOffset; this.syncLoop(); } 
     },
-    
-    stop() { 
-        this.isPlaying = false; this.playLimitStep = -1; 
-        document.getElementById('play-btn').innerText = '▶ PLAY'; 
-        this.pauseOffset = 0; this.currentBarIdx = -1; this.lastStep = -1; 
-        document.getElementById('playback-slider').value = 0; document.getElementById('slider-fill').style.width = '0%'; 
-        document.querySelectorAll('.playing-glow').forEach(el => el.classList.remove('playing-glow'));
-        document.querySelectorAll('.bar-card').forEach(c => c.classList.remove('active-playing'));
-    },
-    
-    playSingleBar(bId) {
-        const barIdx = this.timeline.findIndex(item => item.id === bId);
-        if (barIdx === -1) return;
-        const startStep = barIdx * 16;
-        this.playLimitStep = startStep + 16;
-        this.seek(startStep);
-        if (!this.isPlaying) this.play();
-    },
-
-    seek(step) { 
-        const tempo = parseFloat(document.getElementById('tempo').value); 
-        this.pauseOffset = step * tempo; 
-        if(this.isPlaying && this.audio) this.startTime = this.audio.currentTime - this.pauseOffset; 
-        this.lastStep = -1; 
-    },
-    
-    startSelect(sId, bId, r, c) { this.selection.active = true; this.selection.start = { sId, bId, r, c }; this.selection.end = { sId, bId, r, c }; this.updateUISelection(); },
-    enterSelect(sId, bId, r, c) { if(this.selection.active) { this.selection.end = { sId, bId, r, c }; this.updateUISelection(); } },
-    updateUISelection() { const range = this.getSelectedRange(); document.querySelectorAll('.grid-cell').forEach(el => el.classList.toggle('selected', range.includes(el.getAttribute('data-loc')))); },
-    getSelectedRange() { if (!this.selection.start || !this.selection.end) return []; const s = this.selection.start, e = this.selection.end; if (s.bId !== e.bId) return [`${s.sId}-${s.bId}-${s.r}-${s.c}`]; let res = []; for(let r=Math.min(s.r,e.r); r<=Math.max(s.r,e.r); r++) for(let c=Math.min(s.c,e.c); c<=Math.max(s.c,e.c); c++) res.push(`${s.sId}-${s.bId}-${r}-${c}`); return res; },
-    copyData() { const range = this.getSelectedRange(); if(!range.length) return; const bar = this.getBarById(this.selection.start.bId); const rMin = Math.min(this.selection.start.r, this.selection.end.r), cMin = Math.min(this.selection.start.c, this.selection.end.c); this.clipboard = range.map(loc => { const [,, r, c] = loc.split('-').map(Number); return { relR: r - rMin, relC: c - cMin, val: bar.grid[r][c] }; }); },
-    pasteData() { if (!this.clipboard || !this.selection.start) return; const targetBar = this.getBarById(this.selection.start.bId); this.clipboard.forEach(item => { const tr = this.selection.start.r + item.relR, tc = this.selection.start.c + item.relC; if (tr < 6 && tc < 16) targetBar.grid[tr][tc] = item.val; }); this.renderAll(); this.save(); },
-    deleteSelected() { const range = this.getSelectedRange(); if(!range.length) return; const bar = this.getBarById(this.selection.start.bId); range.forEach(loc => { const [,, r, c] = loc.split('-').map(Number); bar.grid[r][c] = ""; }); this.renderAll(); this.save(); },
-    
+    stop() { this.isPlaying = false; this.playLimitStep = -1; document.getElementById('play-btn').innerText = '▶ MULAI'; this.pauseOffset = 0; this.lastStep = -1; document.getElementById('playback-slider').value = 0; document.querySelectorAll('.playing-glow').forEach(el => el.classList.remove('playing-glow')); },
+    playSingleBar(bId) { const idx = this.timeline.findIndex(t => t.id === bId); if(idx !== -1) { this.playLimitStep = (idx+1)*16; this.seek(idx*16); if(!this.isPlaying) this.play(); } },
+    save() { localStorage.setItem('tabklung_mobile_abk31', JSON.stringify({ songTitle: document.getElementById('song-title').value, tempo: document.getElementById('tempo').value, sections: this.sections, keyBase: this.keyBase })); },
     exportData() { 
-        const title = document.getElementById('song-title').value || 'tabklung_fixed';
-        const blob = new Blob([JSON.stringify({ songTitle: title, tempo: document.getElementById('tempo').value, sections: this.sections, keyBase: this.keyBase, displayMode: this.displayMode })], {type:'application/json'}); 
-        const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = title.replace(/[^a-z0-9]/gi, '_').toLowerCase() + '.json'; a.click(); 
+        const blob = new Blob([JSON.stringify({ songTitle: document.getElementById('song-title').value, sections: this.sections, keyBase: this.keyBase, tempo: document.getElementById('tempo').value })], {type:'application/json'});
+        const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'tabklung_mobile.json'; a.click();
     },
-    
-    importData(e) { const r = new FileReader(); r.onload = (x) => { 
-        const data = JSON.parse(x.target.result); this.sections = data.sections; this.keyBase = data.keyBase || 0; this.displayMode = data.displayMode || 'piano'; document.getElementById('key-base').value = this.keyBase; document.getElementById('song-title').value = data.songTitle || ""; document.getElementById('tempo').value = data.tempo || "0.40"; this.updateModeUI(); this.rebuildTimeline(); this.renderAll(); 
-    }; r.readAsText(e.target.files[0]); },
-    
-    save() { localStorage.setItem('tabklung_v11.7_fix', JSON.stringify({ songTitle: document.getElementById('song-title').value, tempo: document.getElementById('tempo').value, sections: this.sections, keyBase: this.keyBase, displayMode: this.displayMode })); },
-    toggleFold(sId, state) { const s = this.sections.find(x => x.id === sId); if(s) s.collapsed = state; this.renderAll(); this.save(); }
+    importData(e) { 
+        const r = new FileReader(); r.onload = (x) => { 
+            const d = JSON.parse(x.target.result); this.sections = d.sections; this.keyBase = d.keyBase || 0; 
+            document.getElementById('song-title').value = d.songTitle || ""; this.rebuildTimeline(); this.renderAll(); 
+        }; r.readAsText(e.target.files[0]); 
+    }
 };
 
 app.init();
