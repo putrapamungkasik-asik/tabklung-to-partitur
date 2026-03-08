@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ABK31 | by: Kang Putra Angklung</title>
+    <title>TABKLUNG Mobile | by: Kang Putra Angklung</title>
     <script src="https://unpkg.com/@tonejs/midi"></script>
     <style>
         :root { 
@@ -11,160 +11,199 @@
             --danger: #ff4757; --success: #22c55e; --card: #0f172a; --gray: #475569;
             --orange: #e67e22; --deep-orange: #d35400;
         }
-        body { font-family: 'Inter', sans-serif; background: var(--bg); color: #f8fafc; margin: 0; display: flex; overflow: hidden; height: 100vh; }
-        .left-panel { width: 35%; background: #0f172a; border-right: 2px solid #334155; display: flex; flex-direction: column; }
-        .right-panel { width: 65%; padding: 20px; overflow-y: auto; background: var(--bg); }
-        .app-header { display: flex; align-items: center; padding: 10px 15px; background: #1e293b; border-bottom: 2px solid var(--gold); }
-        .app-logo { height: 45px; margin-right: 12px; filter: drop-shadow(0 0 5px rgba(251, 191, 36, 0.3)); }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         
-        .song-title-input { background: #000; border: 1px solid var(--gray); color: var(--gold); padding: 5px 10px; border-radius: 4px; font-weight: bold; width: 100%; outline: none; margin-top: 4px; }
+        body { 
+            font-family: 'Inter', sans-serif; background: var(--bg); color: #f8fafc; 
+            margin: 0; display: flex; flex-direction: column; height: 100vh;
+            padding-bottom: 70px; /* Space for Bottom Bar */
+        }
+
+        /* --- HEADER & TOOLBAR --- */
+        .app-header { display: flex; align-items: center; padding: 10px 15px; background: #1e293b; border-bottom: 2px solid var(--gold); }
+        .app-logo { height: 35px; margin-right: 12px; filter: drop-shadow(0 0 5px rgba(251, 191, 36, 0.3)); }
+        .song-title-input { background: #000; border: 1px solid var(--gray); color: var(--gold); padding: 8px 10px; border-radius: 4px; font-weight: bold; width: 100%; outline: none; margin-top: 4px; font-size: 14px; }
         .song-title-input:focus { border-color: var(--accent); }
 
-        .top-toolbar { padding: 10px; background: #0f172a; display: flex; flex-wrap: wrap; gap: 5px; border-bottom: 1px solid #334155; align-items: center; }
-        .btn-tool { border: none; color: white; padding: 6px 10px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 10px; transition: 0.2s; text-transform: uppercase; }
-        .btn-tool:hover { transform: translateY(-1px); filter: brightness(1.2); }
+        .top-toolbar { 
+            display: flex; overflow-x: auto; flex-wrap: nowrap; padding: 10px 15px; 
+            background: #0f172a; gap: 8px; border-bottom: 1px solid #334155; 
+            align-items: center; scrollbar-width: none; -webkit-overflow-scrolling: touch;
+        }
+        .top-toolbar::-webkit-scrollbar { display: none; }
         
-        .mode-selector { background: #334155; padding: 3px; border-radius: 6px; display: flex; gap: 3px; }
-        .btn-mode { border: none; background: transparent; color: #94a3b8; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 10px; font-weight: bold; }
+        .btn-tool { border: none; color: white; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 11px; text-transform: uppercase; white-space: nowrap; }
+        .btn-tool:active { transform: scale(0.95); filter: brightness(1.2); }
+        
+        .mode-selector { background: #334155; padding: 3px; border-radius: 6px; display: flex; gap: 3px; flex-shrink: 0; }
+        .btn-mode { border: none; background: transparent; color: #94a3b8; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 11px; font-weight: bold; }
         .btn-mode.active { background: var(--gold); color: black; }
-        .key-select { background: #000; color: var(--gold); border: 1px solid var(--gold); border-radius: 4px; font-size: 10px; padding: 3px; cursor: pointer; }
-
-        .monitor-frame { flex: 1; background: #000; margin: 15px; border-radius: 12px; border: 4px solid #334155; position: relative; overflow: hidden; display: flex; flex-direction: column; }
-        .lane { flex: 1; display: grid; grid-template-columns: repeat(16, 1fr); border-bottom: 1px solid #111; }
-        .monitor-note { margin: 3px; border-radius: 3px; height: 75%; }
-        .scan-cursor { position: absolute; top: 0; bottom: 0; width: calc(100% / 16); background: rgba(45, 212, 191, 0.15); border-left: 2px solid var(--accent); z-index: 10; pointer-events: none; }
+        .key-select { background: #000; color: var(--gold); border: 1px solid var(--gold); border-radius: 4px; font-size: 12px; padding: 6px; cursor: pointer; flex-shrink: 0; }
         
-        .timeline-container { padding: 0 20px 15px 20px; display: flex; align-items: center; gap: 15px; }
-        .time-display { font-family: 'Courier New', monospace; font-size: 14px; color: var(--gold); min-width: 45px; }
-        .slider-wrapper { flex: 1; position: relative; height: 6px; background: var(--gray); border-radius: 3px; }
-        #playback-slider { -webkit-appearance: none; width: 100%; height: 100%; background: transparent; cursor: pointer; position: absolute; z-index: 5; margin: 0; top:0; }
-        #playback-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; background: #fff; border: 2px solid var(--gold); border-radius: 50%; }
-        .slider-progress { position: absolute; height: 100%; background: var(--gold); border-radius: 3px; pointer-events: none; width: 0%; top:0; }
+        .tempo-wrapper { display:flex; align-items:center; gap:5px; background: #000; padding: 3px 8px; border-radius: 6px; flex-shrink: 0; border: 1px solid var(--gray); }
+        .tempo-wrapper input { width: 45px; background: transparent; color: var(--gold); border: none; text-align: center; font-size: 12px; font-weight: bold; outline: none; }
 
-        .section-box { background: #111827; border: 1px solid #374151; border-radius: 12px; padding: 15px; margin-bottom: 20px; }
+        /* --- TIMELINE --- */
+        .timeline-container { padding: 10px 15px; display: flex; align-items: center; gap: 15px; background: #0f172a; border-bottom: 2px solid #1e293b; }
+        .time-display { font-family: 'Courier New', monospace; font-size: 14px; color: var(--gold); min-width: 45px; font-weight: bold;}
+        .slider-wrapper { flex: 1; position: relative; height: 8px; background: var(--gray); border-radius: 4px; }
+        #playback-slider { -webkit-appearance: none; width: 100%; height: 100%; background: transparent; position: absolute; z-index: 5; margin: 0; top:0; }
+        #playback-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; background: #fff; border: 2px solid var(--gold); border-radius: 50%; }
+        .slider-progress { position: absolute; height: 100%; background: var(--gold); border-radius: 4px; pointer-events: none; width: 0%; top:0; }
+
+        /* --- MAIN EDITOR --- */
+        .main-editor { flex: 1; overflow-y: auto; padding: 15px; -webkit-overflow-scrolling: touch; }
+        .section-box { background: #111827; border: 1px solid #374151; border-radius: 12px; padding: 12px; margin-bottom: 20px; }
         .section-box.collapsed .bar-content { display: none; }
-        .group-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #1f2937; }
-        .grid-row { display: flex; gap: 4px; margin-bottom: 4px; align-items: center; min-width: max-content; }
-        .btn-shift { background: #334155; color: white; border: none; border-radius: 3px; cursor: pointer; width: 22px; height: 22px; font-size: 10px; flex-shrink: 0; }
+        .group-header { display: flex; flex-direction: column; gap: 10px; margin-bottom: 10px; padding-bottom: 10px; border-bottom: 1px solid #1f2937; }
         
-        .grid-cell { width: 100%; min-width: 30px; height: 28px; border: 1px solid #1e293b; text-align: center; font-weight: bold; border-radius: 4px; font-size: 12px; outline: none; background: #000; color: #fff; cursor: cell; font-family: 'Courier New', monospace; }
-        .grid-cell.selected { background-color: rgba(251, 191, 36, 0.4) !important; border: 1px solid var(--gold) !important; }
+        .bar-card { background: #0f172a; padding: 10px; border-radius: 8px; margin-top: 10px; border: 2px solid #334155; }
+        .active-playing { border-color: var(--gold) !important; box-shadow: 0 0 10px rgba(251,191,36,0.2); }
         
+        .bar-tools-scroll { display: flex; overflow-x: auto; gap: 5px; margin-bottom: 10px; padding-bottom: 5px; scrollbar-width: none; }
+        .bar-tools-scroll::-webkit-scrollbar { display: none; }
+        .bar-name-input { background: transparent; border: 1px solid #334; color: var(--gold); font-size: 11px; font-weight: bold; width: 60px; padding: 4px; border-radius: 4px; text-align: center; }
+
+        .grid-scroll-area { overflow-x: auto; padding-bottom: 5px; -webkit-overflow-scrolling: touch; }
+        .grid-row { display: flex; gap: 4px; margin-bottom: 4px; align-items: center; width: max-content; }
+        
+        /* TOUCH FRIENDLY CELLS */
+        .grid-cell { 
+            min-width: 45px; height: 45px; border: 1px solid #1e293b; text-align: center; 
+            font-weight: bold; border-radius: 6px; font-size: 14px; background: #000; color: #fff; 
+            font-family: 'Courier New', monospace; display: flex; align-items: center; justify-content: center;
+            cursor: pointer; transition: background 0.1s; user-select: none;
+        }
+        .grid-cell:active { transform: scale(0.95); }
+        .grid-cell.selected { background-color: rgba(251, 191, 36, 0.4) !important; border: 2px solid var(--gold) !important; }
+        
+        /* VISUAL GLOW HIGHLIGHT */
+        .playing-glow {
+            background-color: var(--gold) !important;
+            color: #000 !important;
+            border-color: #fff !important;
+            box-shadow: 0 0 15px var(--gold);
+            transform: scale(1.05);
+            z-index: 10;
+        }
+
         .beat-1 { background: #0f172a; } 
         .beat-2 { background: #1e293b; } 
+        .row-label { width: 25px; font-size: 10px; color: #64748b; text-align: center; font-weight: bold; flex-shrink: 0; }
+
+        /* --- BOTTOM ACTION BAR --- */
+        .bottom-bar {
+            position: fixed; bottom: 0; left: 0; width: 100%; background: #1e293b; 
+            border-top: 2px solid var(--gold); display: flex; gap: 10px;
+            padding: 10px 15px; z-index: 1000; align-items: center; justify-content: space-between;
+            box-shadow: 0 -4px 10px rgba(0,0,0,0.5);
+        }
+        .btn-play { flex: 2; padding: 15px; background: var(--success); border: none; color: white; font-weight: 900; font-size: 16px; border-radius: 8px; cursor: pointer; }
+        .btn-stop { flex: 1; padding: 15px; background: var(--danger); border: none; color: white; font-weight: 900; font-size: 16px; border-radius: 8px; cursor: pointer; }
+
+        /* --- CUSTOM PICKER MODAL --- */
+        #picker-modal {
+            display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); 
+            z-index: 2000; justify-content: center; align-items: center; flex-direction: column;
+            backdrop-filter: blur(4px); padding: 15px;
+        }
+        .picker-container {
+            background: #0f172a; border: 2px solid var(--gold); border-radius: 16px; 
+            width: 100%; max-width: 400px; padding: 20px; display: flex; flex-direction: column; 
+            max-height: 85vh; box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+        }
+        .picker-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #334155; padding-bottom: 10px; margin-bottom: 15px; }
+        .picker-title { color: var(--gold); font-weight: bold; font-size: 16px; margin: 0; }
+        .btn-close-picker { background: transparent; border: none; color: white; font-size: 24px; font-weight: bold; cursor: pointer; }
         
-        .bar-card { background: #0f172a; padding: 10px; border-radius: 8px; margin-top: 10px; border: 2px solid #334155; overflow-x: auto; -webkit-overflow-scrolling: touch; }
-        .active-playing { border-color: var(--gold) !important; background: #1e294b !important; }
-        input[type="number"] { width: 50px; background: #000; color: var(--gold); border: 1px solid var(--gold); border-radius: 4px; text-align: center; font-size: 11px; }
-
-        #autocomplete-box {
-            position: fixed; background: #1e293b; border: 1px solid var(--gold);
-            border-radius: 4px; z-index: 1000; display: none; box-shadow: 0 4px 15px rgba(0,0,0,0.5);
-            max-height: 200px; overflow-y: auto; min-width: 60px;
+        .picker-grid { 
+            display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; 
+            overflow-y: auto; padding-right: 5px; margin-bottom: 15px;
+            -webkit-overflow-scrolling: touch;
         }
-        .suggest-item {
-            padding: 8px 12px; cursor: pointer; font-size: 14px; color: white;
-            border-bottom: 1px solid #334155; text-align: center;
+        .btn-pick { 
+            padding: 15px 5px; background: #1e293b; border: 1px solid #334155; 
+            color: white; border-radius: 8px; font-weight: bold; font-size: 14px; 
+            text-align: center; cursor: pointer; transition: 0.1s;
         }
-        .suggest-item:hover, .suggest-item.active { background: var(--gold); color: black; }
+        .btn-pick:active { background: var(--gold); color: black; transform: scale(0.95); }
+        .btn-clear-cell { background: var(--danger); color: white; border: none; padding: 15px; font-weight: bold; font-size: 16px; border-radius: 8px; cursor: pointer; width: 100%; }
 
-        .layer-selector { font-size: 9px; color: var(--accent); background: #000; border: 1px solid #334155; border-radius: 4px; padding: 2px; }
-
-        /* Optimasi Mobile-Responsive */
-        @media (max-width: 768px) {
-            body { flex-direction: column; }
-            .left-panel { width: 100%; height: 45vh; border-right: none; border-bottom: 2px solid var(--gold); }
-            .right-panel { width: 100%; height: 55vh; padding: 10px; }
-            .app-logo { height: 35px; }
-            
-            /* Horizontal Scroll untuk Toolbar Top agar tidak bertumpuk berantakan */
-            .top-toolbar { flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 12px; }
-            .top-toolbar::-webkit-scrollbar { display: none; }
-            
-            .monitor-frame { margin: 10px; }
-            .timeline-container { padding: 0 15px 10px 15px; }
-            
-            /* Input Ukuran Jari (Jempol) yang Nyaman */
-            .grid-cell { min-width: 45px; height: 45px; font-size: 14px; }
-            .btn-shift { width: 35px; height: 35px; font-size: 14px; }
-            
-            .group-header { flex-direction: column; align-items: flex-start; gap: 10px; }
-            .section-box { padding: 10px; }
-        }
     </style>
 </head>
 <body>
 
-<div id="autocomplete-box"></div>
-
-<div class="left-panel">
-    <div class="app-header">
-        <img src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEjvm4FDE7tagy8ZtWyfy_pzRnB9D8orAO_5EwH5sBbJOC3JIOlGweg5XCwhWQZbY8xVIFTbMpojvtX3X-BZv_xfrvjzIkXn3-RYIwFJMhOnM-y0YaO8JZocqYoFmq4NSdHwsPzAp8kIjzfFtCL8KrgDiueLZRhApll7tvcTmeRS6lcBtjEK4ZthgkS7rmI/s320/kang_putra__1_-removebg-preview.png" class="app-logo">
-        <div style="flex:1">
-            <h3 style="margin:0; color:var(--gold); font-size:14px;">ABK31 | by: Kang Putra Angklung</h3>
-            <input type="text" id="song-title" class="song-title-input" placeholder="Judul Lagu..." oninput="app.save()">
-        </div>
-    </div>
-
-    <div class="top-toolbar">
-        <button class="btn-tool" style="background:#3b82f6;" onclick="app.exportData()">💾 Save</button>
-        <button class="btn-tool" style="background:#6366f1;" onclick="document.getElementById('importFile').click()">📂 Load</button>
-        <button class="btn-tool" style="background:#8b5cf6;" onclick="document.getElementById('midiFile').click()">🎹 MIDI</button>
-        
-        <div style="border-left: 1px solid #334; padding-left: 5px; display: flex; align-items: center; gap: 4px;">
-            <select id="mass-layer-target" class="layer-selector">
-                <option value="all">Semua Layer</option>
-                <option value="exclude-l1">Kecuali Layer 1</option>
-                <option value="l1-only">Hanya Layer 1</option>
-            </select>
-            <button class="btn-tool" style="background:var(--deep-orange);" onclick="app.quantizeAll(document.getElementById('mass-layer-target').value)">🎯 Selective Mass</button>
-        </div>
-
-        <div class="mode-selector">
-            <button id="mode-piano" class="btn-mode active" onclick="app.setDisplayMode('piano')">Piano</button>
-            <button id="mode-solfege" class="btn-mode" onclick="app.setDisplayMode('solfege')">123</button>
-        </div>
-
-        <select id="key-base" class="key-select" onchange="app.setKeyBase(this.value)">
-            <option value="0">Do=C</option><option value="1">Do=C#</option><option value="2">Do=D</option>
-            <option value="3">Do=D#</option><option value="4">Do=E</option><option value="5">Do=F</option>
-            <option value="6">Do=F#</option><option value="7">Do=G</option><option value="8">Do=G#</option>
-            <option value="9">Do=A</option><option value="10">Do=A#</option><option value="11">Do=B</option>
-        </select>
-
-        <div style="display:flex; align-items:center; gap:3px; margin-left: 5px;">
-            <span style="font-size:9px; color:#94a3b8">BPM</span>
-            <input type="number" id="tempo" value="0.40" step="0.01" oninput="app.save()">
-        </div>
-
-        <input type="file" id="importFile" style="display:none" onchange="app.importData(event)">
-        <input type="file" id="midiFile" style="display:none" onchange="app.importMIDI(event)">
-    </div>
-
-    <div class="monitor-frame">
-        <div class="scan-cursor" id="scan-cursor"></div>
-        <div class="lane" data-row="0"></div><div class="lane" data-row="1"></div>
-        <div class="lane" data-row="2"></div><div class="lane" data-row="3"></div>
-        <div class="lane" data-row="4"></div><div class="lane" data-row="5" style="background:#0a0a0a"></div>
-    </div>
-
-    <div class="timeline-container">
-        <span class="time-display" id="time-current">00:00</span>
-        <div class="slider-wrapper">
-            <div class="slider-progress" id="slider-fill"></div>
-            <input type="range" id="playback-slider" value="0" min="0" step="1" oninput="app.seek(this.value)">
-        </div>
-    </div>
-
-    <div style="padding:15px; display:flex; gap:10px; background:#1e293b;">
-        <button id="play-btn" onclick="app.play()" style="flex:2; padding:12px; background:var(--success); border:none; color:white; font-weight:bold; border-radius:8px; cursor:pointer;">▶ PLAY</button>
-        <button onclick="app.stop()" style="flex:1; padding:12px; background:var(--danger); border:none; color:white; font-weight:bold; border-radius:8px; cursor:pointer;">■ STOP</button>
+<div class="app-header">
+    <img src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEjvm4FDE7tagy8ZtWyfy_pzRnB9D8orAO_5EwH5sBbJOC3JIOlGweg5XCwhWQZbY8xVIFTbMpojvtX3X-BZv_xfrvjzIkXn3-RYIwFJMhOnM-y0YaO8JZocqYoFmq4NSdHwsPzAp8kIjzfFtCL8KrgDiueLZRhApll7tvcTmeRS6lcBtjEK4ZthgkS7rmI/s320/kang_putra__1_-removebg-preview.png" class="app-logo">
+    <div style="flex:1">
+        <h3 style="margin:0; color:var(--gold); font-size:12px;">TABKLUNG Mobile</h3>
+        <input type="text" id="song-title" class="song-title-input" placeholder="Judul Lagu..." oninput="app.save()">
     </div>
 </div>
 
-<div class="right-panel">
+<div class="top-toolbar">
+    <button class="btn-tool" style="background:#3b82f6;" onclick="app.exportData()">💾 Save</button>
+    <button class="btn-tool" style="background:#6366f1;" onclick="document.getElementById('importFile').click()">📂 Load</button>
+    <button class="btn-tool" style="background:#8b5cf6;" onclick="document.getElementById('midiFile').click()">🎹 MIDI</button>
+    
+    <div style="border-left: 1px solid #334; padding-left: 5px; display: flex; align-items: center; gap: 4px;">
+        <select id="mass-layer-target" style="font-size: 11px; padding: 6px; background: #000; color: var(--accent); border: 1px solid #334155; border-radius: 4px;">
+            <option value="all">Semua Layer</option>
+            <option value="exclude-l1">Kecuali L1</option>
+            <option value="l1-only">Hanya L1</option>
+        </select>
+        <button class="btn-tool" style="background:var(--deep-orange);" onclick="app.quantizeAll(document.getElementById('mass-layer-target').value)">🎯 Mass Quantize</button>
+    </div>
+
+    <div class="mode-selector">
+        <button id="mode-piano" class="btn-mode active" onclick="app.setDisplayMode('piano')">Piano</button>
+        <button id="mode-solfege" class="btn-mode" onclick="app.setDisplayMode('solfege')">123</button>
+    </div>
+
+    <select id="key-base" class="key-select" onchange="app.setKeyBase(this.value)">
+        <option value="0">Do=C</option><option value="1">Do=C#</option><option value="2">Do=D</option>
+        <option value="3">Do=D#</option><option value="4">Do=E</option><option value="5">Do=F</option>
+        <option value="6">Do=F#</option><option value="7">Do=G</option><option value="8">Do=G#</option>
+        <option value="9">Do=A</option><option value="10">Do=A#</option><option value="11">Do=B</option>
+    </select>
+
+    <div class="tempo-wrapper">
+        <span style="font-size:10px; color:#94a3b8">BPM</span>
+        <input type="number" id="tempo" value="0.40" step="0.01" oninput="app.save()">
+    </div>
+
+    <input type="file" id="importFile" style="display:none" onchange="app.importData(event)">
+    <input type="file" id="midiFile" style="display:none" onchange="app.importMIDI(event)">
+</div>
+
+<div class="timeline-container">
+    <span class="time-display" id="time-current">00:00</span>
+    <div class="slider-wrapper">
+        <div class="slider-progress" id="slider-fill"></div>
+        <input type="range" id="playback-slider" value="0" min="0" step="1" oninput="app.seek(this.value)">
+    </div>
+</div>
+
+<div class="main-editor">
     <div id="sections-container"></div>
-    <button onclick="app.addSection()" style="width:100%; padding:18px; background:var(--gold); border:none; font-weight:bold; border-radius:12px; cursor:pointer; color:black; margin-top:20px;">+ TAMBAH GRUP MUSIK BARU</button>
+    <button onclick="app.addSection()" style="width:100%; padding:15px; background:var(--gold); border:none; font-weight:bold; border-radius:8px; cursor:pointer; color:black; margin-bottom: 20px;">+ TAMBAH GRUP MUSIK BARU</button>
+</div>
+
+<div class="bottom-bar">
+    <button onclick="app.stop()" class="btn-stop">■ STOP</button>
+    <button id="play-btn" onclick="app.play()" class="btn-play">▶ PLAY</button>
+</div>
+
+<div id="picker-modal">
+    <div class="picker-container">
+        <div class="picker-header">
+            <h4 class="picker-title">Pilih Nada</h4>
+            <button class="btn-close-picker" onclick="app.closePicker()">×</button>
+        </div>
+        <div class="picker-grid" id="picker-grid-content">
+            </div>
+        <button class="btn-clear-cell" onclick="app.selectPickerValue('')">🗑️ KOSONGKAN SEL</button>
+    </div>
 </div>
 
 <script>
@@ -173,6 +212,8 @@ const app = {
     startTime: 0, pauseOffset: 0, currentBarIdx: -1, lastStep: -1,
     selection: { start: null, end: null, active: false }, clipboard: null,
     displayMode: 'piano', keyBase: 0, playLimitStep: -1,
+    pickerTarget: null,
+    
     // MIDI List Standard C4=60
     noteList: ["C4","C#4","D4","D#4","E4","F4","F#4","G4","G#4","A4","A#4","B4","C5","C#5","D5","D#5","E5","F5","F#5","G5","G#5","A5","A#5","B5","C6","C#6","D6","D#6","E6","F6","F#6","G6","G#6","A6","A#6","B6","C7","C#7","D7","D#7","E7"],
     solfegeMap: { 0: "1", 1: "1\u0338", 2: "2", 3: "2\u0338", 4: "3", 5: "4", 6: "4\u0338", 7: "5", 8: "5\u0338", 9: "6", 10: "6\u0338", 11: "7" },
@@ -224,21 +265,39 @@ const app = {
         const tempo = parseFloat(document.getElementById('tempo').value);
         const elapsed = this.audio.currentTime - this.startTime;
         const step = Math.floor(elapsed / tempo);
+        
         if (this.playLimitStep !== -1 && step >= this.playLimitStep) { this.stop(); return; }
         const barIdx = Math.floor(step / 16);
         const subStep = step % 16;
+        
         if(barIdx >= this.timeline.length) { this.stop(); return; }
         
         document.getElementById('playback-slider').value = step;
         document.getElementById('slider-fill').style.width = (step / (document.getElementById('playback-slider').max || 1) * 100) + '%';
-        document.getElementById('scan-cursor').style.left = (subStep / 16 * 100) + '%';
         
-        if(barIdx !== this.currentBarIdx) { this.currentBarIdx = barIdx; this.refreshMonitor(barIdx); }
+        if(barIdx !== this.currentBarIdx) { 
+            this.currentBarIdx = barIdx; 
+            document.querySelectorAll('.bar-card').forEach(c => c.classList.remove('active-playing'));
+            let activeCard = document.getElementById(`bar-card-${this.timeline[barIdx].id}`);
+            if(activeCard) activeCard.classList.add('active-playing');
+        }
+
         if(step !== this.lastStep) {
             this.lastStep = step;
             const bar = this.getBarById(this.timeline[barIdx].id);
-            for(let r=0; r<5; r++) {
-                if(bar.grid[r][subStep]) {
+            const sId = this.timeline[barIdx].sId;
+
+            // Remove previous glow
+            document.querySelectorAll('.playing-glow').forEach(el => el.classList.remove('playing-glow'));
+
+            for(let r=0; r<6; r++) { // Termasuk baris chord untuk visual
+                let cellLoc = `${sId}-${bar.id}-${r}-${subStep}`;
+                let cellEl = document.querySelector(`.grid-cell[data-loc="${cellLoc}"]`);
+                if(cellEl) {
+                    cellEl.classList.add('playing-glow');
+                }
+
+                if(r < 5 && bar.grid[r][subStep]) {
                     const midiNote = parseInt(bar.grid[r][subStep]);
                     const freq = 261.63 * Math.pow(2, (midiNote - 60) / 12);
                     this.playTone(freq);
@@ -368,50 +427,54 @@ const app = {
         container.innerHTML = this.sections.map(s => `
             <div class="section-box ${s.collapsed ? 'collapsed' : ''}">
                 <div class="group-header">
-                    <input value="${s.name}" oninput="app.updateSecName(${s.id}, this.value)" style="background:transparent; border:none; color:white; font-weight:bold; font-size:16px; outline:none; width: 150px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; width:100%;">
+                        <input value="${s.name}" oninput="app.updateSecName(${s.id}, this.value)" style="background:transparent; border:none; color:white; font-weight:bold; font-size:16px; outline:none; width: 60%;">
+                        <div>
+                            ${s.collapsed ? `<button class="btn-tool" style="background:var(--success); color:black;" onclick="app.toggleFold(${s.id}, false)">📂 BUKA</button>` : `<button class="btn-tool" style="background:var(--gray);" onclick="app.toggleFold(${s.id}, true)">📁 LIPAT</button>`}
+                        </div>
+                    </div>
                     <div style="display:flex; gap:5px; flex-wrap:wrap;">
-                        ${s.collapsed ? `<button class="btn-tool" style="background:var(--success); color:black;" onclick="app.toggleFold(${s.id}, false)">📂 OPEN</button>` : `<button class="btn-tool" style="background:var(--gray);" onclick="app.toggleFold(${s.id}, true)">📁 FOLD</button>`}
-                        <button class="btn-tool" style="background:var(--accent); color:black;" onclick="app.addBar(${s.id})">+ BAR</button>
-                        <button class="btn-tool" style="background:var(--danger);" onclick="app.deleteSec(${s.id})">DEL</button>
+                        <button class="btn-tool" style="background:var(--accent); color:black;" onclick="app.addBar(${s.id})">+ TAMBAH BAR</button>
+                        <button class="btn-tool" style="background:var(--danger);" onclick="app.deleteSec(${s.id})">HAPUS GRUP</button>
                     </div>
                 </div>
                 <div class="bar-content">
                     ${s.bars.map((b, bIdx) => `
                         <div class="bar-card" id="bar-card-${b.id}">
-                            <div style="display:flex; gap:8px; margin-bottom:8px; align-items:center;">
-                                <input value="${b.name || 'BAR ' + (bIdx + 1)}" oninput="app.updateBarName(${b.id}, this.value)" style="background:none; border:none; color:var(--gold); font-size:10px; font-weight:bold; width:60px;">
-                                <button class="btn-tool" style="background:#334; padding:4px 8px;" onclick="app.shift(${b.id}, 'all', 'L')">◀</button>
-                                <button class="btn-tool" style="background:#334; padding:4px 8px;" onclick="app.shift(${b.id}, 'all', 'R')">▶</button>
+                            <div class="bar-tools-scroll">
+                                <input class="bar-name-input" value="${b.name || 'BAR ' + (bIdx + 1)}" oninput="app.updateBarName(${b.id}, this.value)">
+                                <button class="btn-tool" style="background:#334;" onclick="app.shift(${b.id}, 'all', 'L')">◀</button>
+                                <button class="btn-tool" style="background:#334;" onclick="app.shift(${b.id}, 'all', 'R')">▶</button>
                                 <button class="btn-tool" style="background:var(--deep-orange);" onclick="app.manualSort(${b.id})">🗂️ SORT</button>
-                                <button class="btn-tool" style="background:var(--accent); color:black;" onclick="app.doubleOctave(${b.id})">💎 Double</button>
-                                <button class="btn-tool" style="background:#8b5cf6;" onclick="app.autoChord(${b.id})">🪄 Chord</button>
-                                <div style="display:flex; align-items:center; gap:2px; background:#1e293b; padding:2px; border-radius:6px; border:1px solid #334;">
-                                    <select id="sel-layer-${b.id}" class="layer-selector">
-                                        <option value="all">Semua</option>
-                                        <option value="exclude-l1">Ex L1</option>
-                                        <option value="l1-only">L1 Only</option>
+                                <button class="btn-tool" style="background:var(--accent); color:black;" onclick="app.doubleOctave(${b.id})">💎 DBL</button>
+                                <button class="btn-tool" style="background:#8b5cf6;" onclick="app.autoChord(${b.id})">🪄 CHORD</button>
+                                <div style="display:flex; align-items:center; gap:2px; background:#1e293b; border-radius:4px;">
+                                    <select id="sel-layer-${b.id}" style="font-size:10px; background:transparent; color:white; border:none;">
+                                        <option value="all">All</option><option value="exclude-l1">Ex.L1</option>
                                     </select>
-                                    <button class="btn-tool" style="background:var(--orange); padding:4px 6px;" onclick="app.quantizeToAngklung(${b.id}, document.getElementById('sel-layer-${b.id}').value)">🪘</button>
+                                    <button class="btn-tool" style="background:var(--orange);" onclick="app.quantizeToAngklung(${b.id}, document.getElementById('sel-layer-${b.id}').value)">🪘 QNTZ</button>
                                 </div>
-                                <button class="btn-tool" style="background:var(--success); color:black;" onclick="app.playSingleBar(${b.id})">🎯 Preview</button>
-                                <button onclick="app.deleteBar(${s.id}, ${b.id})" style="margin-left:auto; border:none; color:var(--danger); background:none; cursor:pointer;">✖</button>
+                                <button class="btn-tool" style="background:var(--success); color:black;" onclick="app.playSingleBar(${b.id})">🎯 PREV</button>
+                                <button class="btn-tool" style="background:var(--danger);" onclick="app.deleteBar(${s.id}, ${b.id})">✖</button>
                             </div>
-                            ${b.grid.map((row, rIdx) => `
-                                <div class="grid-row">
-                                    <button class="btn-shift" onclick="app.shift(${b.id}, ${rIdx}, 'L')"><</button>
-                                    <button class="btn-shift" onclick="app.shift(${b.id}, ${rIdx}, 'R')">></button>
-                                    <span style="width:20px; font-size:9px; color:#64748b; text-align:center;">${rIdx==5?'CH':(rIdx+1)}</span>
-                                    ${row.map((cell, cIdx) => {
-                                        const beatClass = (Math.floor(cIdx / 4) % 2 === 0) ? 'beat-1' : 'beat-2';
-                                        return `<input class="grid-cell ${beatClass}" data-loc="${s.id}-${b.id}-${rIdx}-${cIdx}" style="${this.getCellStyle(cell, rIdx==5)}" 
-                                        value="${rIdx==5 ? cell : this.numToSmartDisplay(cell)}" 
-                                        onmousedown="app.startSelect(${s.id}, ${b.id}, ${rIdx}, ${cIdx})" 
-                                        onmouseenter="app.enterSelect(${s.id}, ${b.id}, ${rIdx}, ${cIdx})" 
-                                        oninput="app.handleInput(this, ${s.id}, ${b.id}, ${rIdx}, ${cIdx})"
-                                        onchange="app.updateGrid(${b.id}, ${rIdx}, ${cIdx}, this.value)">`;
-                                    }).join('')}
-                                </div>
-                            `).join('')}
+                            
+                            <div class="grid-scroll-area">
+                                ${b.grid.map((row, rIdx) => `
+                                    <div class="grid-row">
+                                        <span class="row-label">${rIdx==5?'CH':(rIdx+1)}</span>
+                                        ${row.map((cell, cIdx) => {
+                                            const beatClass = (Math.floor(cIdx / 4) % 2 === 0) ? 'beat-1' : 'beat-2';
+                                            return `<div class="grid-cell ${beatClass}" data-loc="${s.id}-${b.id}-${rIdx}-${cIdx}" 
+                                                style="${this.getCellStyle(cell, rIdx==5)}" 
+                                                onclick="app.openPicker(${s.id}, ${b.id}, ${rIdx}, ${cIdx})"
+                                                onmousedown="app.startSelect(${s.id}, ${b.id}, ${rIdx}, ${cIdx})" 
+                                                onmouseenter="app.enterSelect(${s.id}, ${b.id}, ${rIdx}, ${cIdx})">
+                                                ${rIdx==5 ? cell : this.numToSmartDisplay(cell)}
+                                            </div>`;
+                                        }).join('')}
+                                    </div>
+                                `).join('')}
+                            </div>
                         </div>
                     `).join('')}
                 </div>
@@ -431,7 +494,6 @@ const app = {
         const chromaticMap = { "1/":1, "1\\":1, "2/":3, "2\\":3, "4/":6, "4\\":6, "5/":8, "5\\":8, "6/":10, "6\\":10 };
         const baseMap = { "1":0, "2":2, "3":4, "4":5, "5":7, "6":9, "7":11 };
         
-        // Handle Piano Mode (A-G notation)
         if (s.match(/[A-G]/i)) {
             const m = {"C":0,"C#":1,"D":2,"D#":3,"E":4,"F":5,"F#":6,"G":7,"G#":8,"A":9,"A#":10,"B":11}; 
             let match=s.match(/([A-G]#?)(\d)/i); 
@@ -439,7 +501,6 @@ const app = {
             return s;
         }
 
-        // Handle Solfege Mode (123 notation)
         let clean = s.replace(/[\.\u0323]/g, '');
         let octave = (s.split('.').length - 1) - (s.split('\u0323').length - 1);
         
@@ -458,72 +519,51 @@ const app = {
         return `background:${c}44 !important; color:${c}; border-color:${c}aa;`; 
     },
 
+    // --- Custom Picker Logic ---
+    openPicker(sId, bId, r, c) {
+        this.pickerTarget = { sId, bId, r, c };
+        const modal = document.getElementById('picker-modal');
+        const gridContent = document.getElementById('picker-grid-content');
+        gridContent.innerHTML = '';
+
+        if (r === 5) {
+            // Chord Mode
+            const chords = ["C", "Cm", "D", "Dm", "E", "Em", "F", "Fm", "G", "Gm", "A", "Am", "B", "Bm"];
+            chords.forEach(ch => {
+                gridContent.innerHTML += `<button class="btn-pick" onclick="app.selectPickerValue('${ch}')">${ch}</button>`;
+            });
+        } else {
+            // Notes Mode (Convert to MIDI value behind the scenes)
+            this.noteList.forEach(n => {
+                let midi = this.solfegeToNum(n);
+                let label = this.numToSmartDisplay(midi);
+                gridContent.innerHTML += `<button class="btn-pick" onclick="app.selectPickerValue('${midi}')">${label}</button>`;
+            });
+        }
+        modal.style.display = 'flex';
+    },
+
+    closePicker() {
+        document.getElementById('picker-modal').style.display = 'none';
+        this.pickerTarget = null;
+    },
+
+    selectPickerValue(val) {
+        if(this.pickerTarget) {
+            this.updateGrid(this.pickerTarget.bId, this.pickerTarget.r, this.pickerTarget.c, val);
+        }
+        this.closePicker();
+    },
+
     initEvents() {
         window.onkeydown = (e) => {
             if (e.ctrlKey && e.key === 'c') { e.preventDefault(); this.copyData(); }
             if (e.ctrlKey && e.key === 'v') { e.preventDefault(); this.pasteData(); }
             if (e.key === 'Delete') { e.preventDefault(); this.deleteSelected(); }
-            if (e.key === 'Escape') this.hideAutocomplete();
         };
         window.onmouseup = () => { this.selection.active = false; };
-        document.addEventListener('click', (e) => { if(!e.target.classList.contains('grid-cell')) this.hideAutocomplete(); });
     },
 
-    handleInput(el, sId, bId, r, c) {
-        if(r === 5) return; 
-        const val = el.value.toUpperCase();
-        if(!val) { this.hideAutocomplete(); return; }
-
-        if (this.displayMode === 'piano' && isNaN(val[0])) {
-            const matches = this.noteList.filter(n => n.startsWith(val)).slice(0, 5);
-            if(matches.length > 0) {
-                this.showAutocomplete(el, matches, (selected) => {
-                    el.value = selected;
-                    this.updateGrid(bId, r, c, selected);
-                    this.hideAutocomplete();
-                });
-            } else { this.hideAutocomplete(); }
-        } else {
-            // Solmisasi Autocomplete Logic
-            const num = val[0];
-            if ("1234567".includes(num)) {
-                let options = [];
-                let isKromis = val.includes('/') || val.includes('\\');
-                let base = isKromis ? num + (val.includes('/') ? '/' : '\\') : num;
-                let displayBase = isKromis ? num + "\u0338" : num;
-
-                options = [
-                    { label: displayBase + "\u0323 (Rendah)", val: base + "\u0323" },
-                    { label: displayBase + " (Polos)", val: base },
-                    { label: displayBase + ". (Tinggi)", val: base + "." },
-                    { label: displayBase + ".. (Sangat Tinggi)", val: base + ".." }
-                ];
-
-                this.showAutocomplete(el, options.map(o => o.label), (selectedLabel) => {
-                    const selectedObj = options.find(o => o.label === selectedLabel);
-                    el.value = selectedObj.val;
-                    this.updateGrid(bId, r, c, selectedObj.val);
-                    this.hideAutocomplete();
-                });
-            } else { this.hideAutocomplete(); }
-        }
-    },
-
-    showAutocomplete(target, list, onSelect) {
-        const box = document.getElementById('autocomplete-box');
-        const rect = target.getBoundingClientRect();
-        box.style.display = 'block'; box.style.left = rect.left + 'px';
-        box.style.top = (rect.top + rect.height + 2) + 'px'; box.style.width = 'auto';
-        box.innerHTML = list.map(item => `<div class="suggest-item">${item}</div>`).join('');
-        box.querySelectorAll('.suggest-item').forEach((item, idx) => { 
-            item.onclick = (e) => { 
-                e.stopPropagation();
-                onSelect(list[idx]); 
-            }; 
-        });
-    },
-
-    hideAutocomplete() { document.getElementById('autocomplete-box').style.display = 'none'; },
     setDisplayMode(m) { this.displayMode = m; this.updateModeUI(); this.renderAll(); this.save(); },
     updateModeUI() { document.getElementById('mode-piano').classList.toggle('active', this.displayMode === 'piano'); document.getElementById('mode-solfege').classList.toggle('active', this.displayMode === 'solfege'); },
     setKeyBase(v) { this.keyBase = parseInt(v); this.renderAll(); this.save(); },
@@ -536,18 +576,15 @@ const app = {
     
     updateGrid(bId, r, c, v) { 
         const b = this.getBarById(bId); 
-        if(r<5) v = this.solfegeToNum(v); 
+        // Jika input manual selain picker (misal paste), konversi jika belum numeric
+        if(r<5 && v !== "" && isNaN(v)) v = this.solfegeToNum(v); 
         b.grid[r][c] = v; 
         this.renderAll(); this.save(); 
     },
 
     manualSort(bId) {
         const b = this.getBarById(bId);
-        if(b) {
-            this.sortNotesInBar(b);
-            this.renderAll();
-            this.save();
-        }
+        if(b) { this.sortNotesInBar(b); this.renderAll(); this.save(); }
     },
 
     sortNotesInBar(b) { 
@@ -561,9 +598,34 @@ const app = {
 
     getBarById(id) { for(let s of this.sections) { let b = s.bars.find(x => x.id === id); if(b) return b; } },
     shift(bId, rIdx, dir) { const b = this.getBarById(bId); const move = (a) => dir === 'L' ? a.push(a.shift()) : a.unshift(a.pop()); if(rIdx === 'all') b.grid.forEach(row => move(row)); else move(b.grid[rIdx]); this.renderAll(); this.save(); },
-    rebuildTimeline() { this.timeline = []; this.sections.forEach(s => s.bars.forEach(b => this.timeline.push({id: b.id}))); document.getElementById('playback-slider').max = Math.max(0, this.timeline.length * 16 - 1); },
-    play() { if(this.isPlaying) { this.isPlaying = false; document.getElementById('play-btn').innerText = '▶ PLAY'; if(this.audio) this.pauseOffset = this.audio.currentTime - this.startTime; } else { if(!this.audio) this.audio = new AudioContext(); this.isPlaying = true; document.getElementById('play-btn').innerText = '⏸ PAUSE'; this.startTime = this.audio.currentTime - this.pauseOffset; this.syncLoop(); } },
-    stop() { this.isPlaying = false; this.playLimitStep = -1; document.getElementById('play-btn').innerText = '▶ PLAY'; this.pauseOffset = 0; this.currentBarIdx = -1; this.lastStep = -1; document.getElementById('playback-slider').value = 0; document.getElementById('slider-fill').style.width = '0%'; },
+    
+    rebuildTimeline() { 
+        this.timeline = []; 
+        this.sections.forEach(s => s.bars.forEach(b => this.timeline.push({sId: s.id, id: b.id}))); 
+        document.getElementById('playback-slider').max = Math.max(0, this.timeline.length * 16 - 1); 
+    },
+    
+    play() { 
+        if(this.isPlaying) { 
+            this.isPlaying = false; document.getElementById('play-btn').innerText = '▶ PLAY'; 
+            if(this.audio) this.pauseOffset = this.audio.currentTime - this.startTime; 
+        } else { 
+            if(!this.audio) this.audio = new AudioContext(); 
+            this.isPlaying = true; document.getElementById('play-btn').innerText = '⏸ PAUSE'; 
+            this.startTime = this.audio.currentTime - this.pauseOffset; 
+            this.syncLoop(); 
+        } 
+    },
+    
+    stop() { 
+        this.isPlaying = false; this.playLimitStep = -1; 
+        document.getElementById('play-btn').innerText = '▶ PLAY'; 
+        this.pauseOffset = 0; this.currentBarIdx = -1; this.lastStep = -1; 
+        document.getElementById('playback-slider').value = 0; document.getElementById('slider-fill').style.width = '0%'; 
+        document.querySelectorAll('.playing-glow').forEach(el => el.classList.remove('playing-glow'));
+        document.querySelectorAll('.bar-card').forEach(c => c.classList.remove('active-playing'));
+    },
+    
     playSingleBar(bId) {
         const barIdx = this.timeline.findIndex(item => item.id === bId);
         if (barIdx === -1) return;
@@ -572,21 +634,14 @@ const app = {
         this.seek(startStep);
         if (!this.isPlaying) this.play();
     },
-    refreshMonitor(idx) {
-        if (!this.timeline[idx]) return;
-        document.querySelectorAll('.bar-card').forEach(c => c.classList.remove('active-playing'));
-        document.getElementById(`bar-card-${this.timeline[idx].id}`)?.classList.add('active-playing');
-        const bar = this.getBarById(this.timeline[idx].id);
-        for(let r=0; r<6; r++) {
-            const lane = document.querySelector(`.lane[data-row="${r}"]`);
-            lane.innerHTML = bar.grid[r].map(cell => {
-                if(!cell) return '<div></div>';
-                const color = r === 5 ? 'var(--gold)' : (this.noteColors[this.numToSolfege(cell).replace(/[0-9-]/g,'')] || '#fff');
-                return `<div class="monitor-note" style="background:${color}; box-shadow: 0 0 8px ${color}"></div>`;
-            }).join('');
-        }
+
+    seek(step) { 
+        const tempo = parseFloat(document.getElementById('tempo').value); 
+        this.pauseOffset = step * tempo; 
+        if(this.isPlaying && this.audio) this.startTime = this.audio.currentTime - this.pauseOffset; 
+        this.lastStep = -1; 
     },
-    seek(step) { const tempo = parseFloat(document.getElementById('tempo').value); this.pauseOffset = step * tempo; if(this.isPlaying && this.audio) this.startTime = this.audio.currentTime - this.pauseOffset; this.lastStep = -1; this.refreshMonitor(Math.floor(step/16)); },
+    
     startSelect(sId, bId, r, c) { this.selection.active = true; this.selection.start = { sId, bId, r, c }; this.selection.end = { sId, bId, r, c }; this.updateUISelection(); },
     enterSelect(sId, bId, r, c) { if(this.selection.active) { this.selection.end = { sId, bId, r, c }; this.updateUISelection(); } },
     updateUISelection() { const range = this.getSelectedRange(); document.querySelectorAll('.grid-cell').forEach(el => el.classList.toggle('selected', range.includes(el.getAttribute('data-loc')))); },
@@ -594,17 +649,21 @@ const app = {
     copyData() { const range = this.getSelectedRange(); if(!range.length) return; const bar = this.getBarById(this.selection.start.bId); const rMin = Math.min(this.selection.start.r, this.selection.end.r), cMin = Math.min(this.selection.start.c, this.selection.end.c); this.clipboard = range.map(loc => { const [,, r, c] = loc.split('-').map(Number); return { relR: r - rMin, relC: c - cMin, val: bar.grid[r][c] }; }); },
     pasteData() { if (!this.clipboard || !this.selection.start) return; const targetBar = this.getBarById(this.selection.start.bId); this.clipboard.forEach(item => { const tr = this.selection.start.r + item.relR, tc = this.selection.start.c + item.relC; if (tr < 6 && tc < 16) targetBar.grid[tr][tc] = item.val; }); this.renderAll(); this.save(); },
     deleteSelected() { const range = this.getSelectedRange(); if(!range.length) return; const bar = this.getBarById(this.selection.start.bId); range.forEach(loc => { const [,, r, c] = loc.split('-').map(Number); bar.grid[r][c] = ""; }); this.renderAll(); this.save(); },
+    
     exportData() { 
         const title = document.getElementById('song-title').value || 'tabklung_fixed';
         const blob = new Blob([JSON.stringify({ songTitle: title, tempo: document.getElementById('tempo').value, sections: this.sections, keyBase: this.keyBase, displayMode: this.displayMode })], {type:'application/json'}); 
         const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = title.replace(/[^a-z0-9]/gi, '_').toLowerCase() + '.json'; a.click(); 
     },
+    
     importData(e) { const r = new FileReader(); r.onload = (x) => { 
         const data = JSON.parse(x.target.result); this.sections = data.sections; this.keyBase = data.keyBase || 0; this.displayMode = data.displayMode || 'piano'; document.getElementById('key-base').value = this.keyBase; document.getElementById('song-title').value = data.songTitle || ""; document.getElementById('tempo').value = data.tempo || "0.40"; this.updateModeUI(); this.rebuildTimeline(); this.renderAll(); 
     }; r.readAsText(e.target.files[0]); },
+    
     save() { localStorage.setItem('tabklung_v11.7_fix', JSON.stringify({ songTitle: document.getElementById('song-title').value, tempo: document.getElementById('tempo').value, sections: this.sections, keyBase: this.keyBase, displayMode: this.displayMode })); },
     toggleFold(sId, state) { const s = this.sections.find(x => x.id === sId); if(s) s.collapsed = state; this.renderAll(); this.save(); }
 };
+
 app.init();
 </script>
 </body>
